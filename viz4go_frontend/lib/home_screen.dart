@@ -1,8 +1,8 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:graphview/GraphView.dart';
+import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
 import 'package:viz4go_frontend/widgets/viz4go_label.dart';
 
@@ -14,21 +14,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Graph> graphs = [];
-  final Graph graph = Graph()..isTree = true;
-  BuchheimWalkerConfiguration builder = BuchheimWalkerConfiguration(
-  )
-    ..siblingSeparation = 100
-    ..levelSeparation  = 50
-    ..subtreeSeparation = 100
-    ..orientation = BuchheimWalkerConfiguration.ORIENTATION_TOP_BOTTOM;
+  List<List<ValueNotifier<Offset>>> _positions = [];
+  List<List<dynamic>> _connections = [];
   List<dynamic> _items = [];
 
   Future<void> readJson() async {
     try {
       print('Loading data...');
-      final String response =
-          await rootBundle.loadString('found_paths_with_relations.json');
+      final String response = await rootBundle.loadString('example.json');
       final data = await json.decode(response);
       setState(() {
         _items = data;
@@ -39,17 +32,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void loadGraph(list) {
-    graphs.clear(); // Clear existing graphs before loading new ones
+  void loadGraph(List<dynamic> list) {
+    _connections.clear();
+    _positions.clear();
     for (int i = 0; i < list.length; i++) {
-      final graph = Graph();
-      final path = list[i];
-      for (int j = 0; j < path.length; j++) {
-        final node1 = Node.Id(path[j][0]);
-        final node2 = Node.Id(path[j][1]);
-        graph.addEdge(node1, node2);
+      final graph = list[i];
+      final graphConnections = [];
+      for (int j = 0; j < graph.length; j++) {
+        final node1 = graph[j][0];
+        final node2 = graph[j][1];
+        final relation = graph[j][2];
+        graphConnections.add([node1, node2, relation]);
       }
-      graphs.add(graph);
+      _connections.add(graphConnections);
+      final graphPositions = _generateCircularPositions(
+          graphConnections.length, 200, Offset(i * 300 + 150, 300));
+      _positions.add(graphPositions);
     }
   }
 
@@ -60,43 +58,66 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
           SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: graphs.isNotEmpty == true
-                ? InteractiveViewer(
-                    constrained: false,
-                    boundaryMargin: const EdgeInsets.all(200),
-                    minScale: 0.5,
-                    maxScale: 5.0,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      width: double.maxFinite,
-                      height: double.maxFinite,
-                      child: Stack(
-                        children: [
-                          for (int i = 0; i < graphs.length; i++)
-                            Positioned(
-                              left: i * 150.0,
-                              child: GraphView(
-                                graph: graphs[i],
-                                algorithm: BuchheimWalkerAlgorithm(
-                                  builder,
-                                  TreeEdgeRenderer(builder),
-                                ),
-                                paint: Paint()
-                                  ..color = Colors.black
-                                  ..strokeWidth = 1
-                                  ..style = PaintingStyle.stroke,
-                                builder: (node) =>
-                                    NodeWidget(id: node.key!.value),
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: _connections.isNotEmpty == true
+                  ? InteractiveViewer(
+                      constrained: false,
+                      boundaryMargin: const EdgeInsets.all(200),
+                      minScale: 0.5,
+                      maxScale: 5.0,
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        width: double.maxFinite,
+                        height: double.maxFinite,
+                        child: Stack(
+                          children: [
+                            // TODO: Repair CustomPainter and resolve data structore
+                            for (int i = 0; i < _connections.length; i++)
+                              CustomPaint(
+                                painter: LinePainter(_positions[i], _connections),
                               ),
-                            )
-                        ],
+                            for (int i = 0; i < _connections.length; i++)
+                              for (int j = 0; j < _positions[i].length; j++)
+                                ValueListenableBuilder<Offset>(
+                                  valueListenable: _positions[i][j],
+                                  builder: (context, position, child) {
+                                    return Positioned(
+                                      left: position.dx,
+                                      top: position.dy,
+                                      child: Draggable(
+                                        feedback: Container(
+                                          width: 70,
+                                          height: 50,
+                                          color: Colors.blue.withOpacity(0.5),
+                                        ),
+                                        childWhenDragging: Container(),
+                                        onDragUpdate: (details) {
+                                          _positions[i][j].value +=
+                                              details.delta;
+                                        },
+                                        child: Container(
+                                          width: 70,
+                                          height: 50,
+                                          color: Colors.blue,
+                                          child: Center(
+                                            child: Text(
+                                              _connections[i][j][0],
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                : const Viz4goLabel()
-          ),
+                    )
+                  : const Viz4goLabel()),
           Align(
             alignment: Alignment.topRight,
             child: Padding(
@@ -172,4 +193,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+List<ValueNotifier<Offset>> _generateCircularPositions(
+    int count, double radius, Offset center) {
+  return List.generate(count, (index) {
+    final angle = 2 * pi * index / count;
+    final offset = Offset(
+        center.dx + radius * cos(angle), center.dy + radius * sin(angle));
+    return ValueNotifier<Offset>(offset);
+  });
 }
