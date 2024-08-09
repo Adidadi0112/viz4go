@@ -1,31 +1,66 @@
 import 'package:flutter/material.dart';
 
 class NodeWidget extends StatelessWidget {
-  final String id;
+  final MapEntry<String, int> entry;
 
-  const NodeWidget({super.key, required this.id});
+  final List<ValueNotifier<Offset>> positions;
+
+  const NodeWidget({super.key, required this.entry, required this.positions});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-    onTap: () {
-      print('clicked');
-    },
-    child: Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Color.fromARGB(255, 237, 224, 219), spreadRadius: 1),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(id),
-          const Text('name'),
+    return Draggable(
+      feedback: Container(
+        width: 80,
+        height: 50,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 237, 224, 219).withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              entry.key,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.black.withOpacity(0.5),
+              ),
+            ),
+            Text(
+              'name',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.black.withOpacity(0.5),
+              ),
+            ),
           ],
+        ),
       ),
-    ),
-  );
+      childWhenDragging: Container(),
+      onDragUpdate: (details) {
+        positions[entry.value].value += details.delta;
+      },
+      child: Container(
+        width: 80,
+        height: 50,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 255, 225, 212),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              entry.key,
+              style: const TextStyle(fontSize: 10, color: Colors.black),
+            ),
+            const Text('name'),
+          ],
+        ),
+      ),
+    );
   }
 }

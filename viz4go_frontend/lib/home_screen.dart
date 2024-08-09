@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:csv/csv.dart';
 import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
 import 'package:viz4go_frontend/widgets/viz4go_label.dart';
@@ -14,41 +15,56 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<List<ValueNotifier<Offset>>> _positions = [];
-  List<List<dynamic>> _connections = [];
+  List<ValueNotifier<Offset>> _positions = [];
+  late final Map<String, int> _nodeIndex;
   List<dynamic> _items = [];
+
 
   Future<void> readJson() async {
     try {
       print('Loading data...');
-      final String response = await rootBundle.loadString('example.json');
+      final String response = await rootBundle.loadString('connections.json');
       final data = await json.decode(response);
       setState(() {
         _items = data;
-        print('Data loaded');
       });
     } catch (e) {
       print('Error loading data: $e');
     }
   }
 
-  void loadGraph(List<dynamic> list) {
-    _connections.clear();
-    _positions.clear();
-    for (int i = 0; i < list.length; i++) {
-      final graph = list[i];
-      final graphConnections = [];
-      for (int j = 0; j < graph.length; j++) {
-        final node1 = graph[j][0];
-        final node2 = graph[j][1];
-        final relation = graph[j][2];
-        graphConnections.add([node1, node2, relation]);
-      }
-      _connections.add(graphConnections);
-      final graphPositions = _generateCircularPositions(
-          graphConnections.length, 200, Offset(i * 300 + 150, 300));
-      _positions.add(graphPositions);
+  Future<List<Map<String, String>>> loadCsvData() async {
+  final data = await rootBundle.loadString('assets/go_nodes.csv');
+  List<List<dynamic>> csvTable = const CsvToListConverter().convert(data);
+
+  List<Map<String, String>> csvData = [];
+  List<String> headers = csvTable[0].map((e) => e.toString()).toList();
+
+  for (var i = 1; i < csvTable.length; i++) {
+    Map<String, String> row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = csvTable[i][j].toString();
     }
+    csvData.add(row);
+  }
+  print(csvData);
+  return csvData;
+}
+
+  void loadGraph(List<dynamic> list) {
+    _positions.clear();
+    _nodeIndex = {};
+    int index = 0;
+    for (var connection in list) {
+      if (!_nodeIndex.containsKey(connection[0])) {
+        _nodeIndex[connection[0]] = index++;
+      }
+      if (!_nodeIndex.containsKey(connection[1])) {
+        _nodeIndex[connection[1]] = index++;
+      }
+    }
+    _positions = _generateRandomPositions(
+        _nodeIndex.length, const Rect.fromLTWH(200, 100, 500, 500));
   }
 
   @override
@@ -60,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              child: _connections.isNotEmpty == true
+              child: _items.isNotEmpty == true
                   ? InteractiveViewer(
                       constrained: false,
                       boundaryMargin: const EdgeInsets.all(200),
@@ -72,47 +88,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: double.maxFinite,
                         child: Stack(
                           children: [
-                            // TODO: Repair CustomPainter and resolve data structore
-                            for (int i = 0; i < _connections.length; i++)
-                              CustomPaint(
-                                painter: LinePainter(_positions[i], _connections),
-                              ),
-                            for (int i = 0; i < _connections.length; i++)
-                              for (int j = 0; j < _positions[i].length; j++)
-                                ValueListenableBuilder<Offset>(
-                                  valueListenable: _positions[i][j],
+                            CustomPaint(
+                              painter:
+                                  LinePainter(_positions, _items, _nodeIndex),
+                              child: Container(),
+                            ),
+                            for (var entry in _nodeIndex.entries)
+                              ValueListenableBuilder<Offset>(
+                                  valueListenable: _positions[entry.value],
                                   builder: (context, position, child) {
                                     return Positioned(
                                       left: position.dx,
                                       top: position.dy,
-                                      child: Draggable(
-                                        feedback: Container(
-                                          width: 70,
-                                          height: 50,
-                                          color: Colors.blue.withOpacity(0.5),
-                                        ),
-                                        childWhenDragging: Container(),
-                                        onDragUpdate: (details) {
-                                          _positions[i][j].value +=
-                                              details.delta;
-                                        },
-                                        child: Container(
-                                          width: 70,
-                                          height: 50,
-                                          color: Colors.blue,
-                                          child: Center(
-                                            child: Text(
-                                              _connections[i][j][0],
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 10),
-                                            ),
-                                          ),
-                                        ),
+                                      child: NodeWidget(
+                                        entry: entry,
+                                        positions: _positions,
                                       ),
                                     );
-                                  },
-                                ),
+                                  })
                           ],
                         ),
                       ),
@@ -195,12 +188,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-List<ValueNotifier<Offset>> _generateCircularPositions(
-    int count, double radius, Offset center) {
+List<ValueNotifier<Offset>> _generateRandomPositions(int count, Rect area) {
+  final random = Random();
   return List.generate(count, (index) {
-    final angle = 2 * pi * index / count;
-    final offset = Offset(
-        center.dx + radius * cos(angle), center.dy + radius * sin(angle));
-    return ValueNotifier<Offset>(offset);
+    final x = random.nextDouble() * area.width + area.left;
+    final y = random.nextDouble() * area.height + area.top;
+    return ValueNotifier<Offset>(Offset(x, y));
   });
 }
