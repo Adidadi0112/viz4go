@@ -18,27 +18,26 @@ class NodeWidget extends StatelessWidget {
           color: const Color.fromARGB(255, 237, 224, 219).withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
         ),
+      ),
+      childWhenDragging: Container(
+        width: 80,
+        height: 50,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 237, 224, 219).withOpacity(0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               entry.key,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.black.withOpacity(0.5),
-              ),
+              style: const TextStyle(fontSize: 10, color: Colors.black),
             ),
-            Text(
-              'name',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.black.withOpacity(0.5),
-              ),
-            ),
+            const Text('name'),
           ],
         ),
       ),
-      childWhenDragging: Container(),
       onDragUpdate: (details) {
         positions[entry.value].value += details.delta;
       },
