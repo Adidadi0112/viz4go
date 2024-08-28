@@ -31,13 +31,13 @@ class LinePainter extends CustomPainter {
   Color _getColorForRelations(String relation) {
     switch (relation) {
       case 'is_a':
-        return Color(0xFFFFFFFF);
+        return const Color(0xFFFFFFFF);
       case 'part_of':
-        return Color(0xFF00BCD4);
+        return const Color.fromARGB(255, 127, 240, 255);
       case "negatively_regulates":
-        return Color(0xFFE91E63);
+        return const Color(0xFFE91E63);
       case "regulates":
-        return Color(0xFFCDDC39);
+        return const Color(0xFFCDDC39);
       default:
         return Colors.black.withOpacity(0.3);
     }

@@ -2,13 +2,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:csv/csv.dart';
+import 'package:viz4go_frontend/models/tree_node.dart';
 import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/menu.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
 import 'package:viz4go_frontend/widgets/viz4go_label.dart';
 
-enum LayoutMode { random, circular, twoColumn }
+enum LayoutMode { random, circular, twoColumn, tree}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ValueNotifier<Offset>> _positions = [];
   late final Map<String, int> _nodeIndex;
   List<dynamic> _items = [];
-  List<String> _activeFilters = ['is_a', 'part_of'];
+  final List<String> _activeFilters = ['is_a', 'part_of'];
   LayoutMode _currentLayoutMode = LayoutMode.random;
   final TextEditingController _goIdController = TextEditingController();
 
@@ -36,24 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('Error loading data: $e');
     }
-  }
-
-  Future<List<Map<String, String>>> loadCsvData() async {
-    final data = await rootBundle.loadString('assets/go_nodes.csv');
-    List<List<dynamic>> csvTable = const CsvToListConverter().convert(data);
-
-    List<Map<String, String>> csvData = [];
-    List<String> headers = csvTable[0].map((e) => e.toString()).toList();
-
-    for (var i = 1; i < csvTable.length; i++) {
-      Map<String, String> row = {};
-      for (var j = 0; j < headers.length; j++) {
-        row[headers[j]] = csvTable[i][j].toString();
-      }
-      csvData.add(row);
-    }
-    print(csvData);
-    return csvData;
   }
 
   void _updateLayoutMode(LayoutMode newMode) {
@@ -71,6 +53,8 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
       return _generateCircularPositions(count, area, 0.4, 0.8);
     case LayoutMode.twoColumn:
       return _generateTwoColumnPositions(count, const Rect.fromLTWH(0, 0, 800, 1500));
+    case LayoutMode.tree:
+      return _generateTreePositions(_nodeIndex, _items, area);
   }
 }
 
@@ -107,7 +91,7 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
               child: _items.isNotEmpty == true
                   ? InteractiveViewer(
                       constrained: false,
-                      boundaryMargin: const EdgeInsets.all(200),
+                      boundaryMargin: const EdgeInsets.all(500),
                       minScale: 0.5,
                       maxScale: 5.0,
                       child: Container(
@@ -155,6 +139,58 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
       ),
     );
   }
+
+  List<ValueNotifier<Offset>> _generateTreePositions(Map<String, int> nodeIndex, List<dynamic> items, Rect area) {
+  Map<String, TreeNode> treeNodes = {};
+
+  try {
+    for (var connection in items) {
+      if (connection is List && connection.length >= 2) {
+        final parent = connection[0] as String;
+        final child = connection[1] as String;      
+        if (!treeNodes.containsKey(parent)) {
+          treeNodes[parent] = TreeNode(parent);
+        }
+        if (!treeNodes.containsKey(child)) {
+          treeNodes[child] = TreeNode(child);
+        }
+
+        treeNodes[parent]!.children.add(child);
+      } else {
+        print('Invalid connection format: $connection');
+      }
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+
+  List<ValueNotifier<Offset>> positions = List.generate(nodeIndex.length, (_) => ValueNotifier<Offset>(Offset.zero));
+
+  void _setPosition(String nodeId, double x, double y, double dx, Map<String, TreeNode> nodes) {
+    final index = nodeIndex[nodeId]!; 
+    positions[index].value = Offset(x, y);
+
+    final children = nodes[nodeId]!.children;
+    if (children.isNotEmpty) {
+      int childCount = children.length;
+
+      double adjustedDx = dx;
+      if (childCount > 4) {
+        adjustedDx *= 2.5;
+      }
+
+      for (var i = 0; i < children.length; i++) {
+        _setPosition(children[i], x + (i - (children.length - 1) / 2) * adjustedDx, y + 100, adjustedDx / 2, nodes);
+      }
+    }
+  }
+
+  String root = treeNodes.keys.firstWhere((id) => !items.any((item) => item[1] == id)); 
+  _setPosition(root, area.width / 2, 50, area.width / 4, treeNodes);
+
+  return positions;
+}
+
 }
 
 List<ValueNotifier<Offset>> _generateRandomPositions(int count, Rect area) {

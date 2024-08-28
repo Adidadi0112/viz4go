@@ -121,6 +121,12 @@ class _MenuWidgetState extends State<MenuWidget> {
                           'Two Column',
                         ),
                       ),
+                      DropdownMenuItem(
+                        value: LayoutMode.tree,
+                        child: Text(
+                          'Tree',
+                        ),
+                      ),
                     ],
                     onChanged: (LayoutMode? newMode) {
                       setState(() {
