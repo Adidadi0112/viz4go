@@ -1,0 +1,514 @@
+[
+    {
+        "id": "GO:0003008",
+        "name": "system process",
+        "namespace": "biological_process",
+        "def": "\"A multicellular organismal process carried out by any of the organs or tissues in an organ system. An organ system is a regularly interacting or interdependent group of organs or tissues that work together to carry out a biological objective.\" [GOC:mtg_cardio]",
+        "is_a": "GO:0032501",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0003674",
+        "name": "molecular_function",
+        "namespace": "molecular_function",
+        "def": "\"A molecular process that can be carried out by the action of a single macromolecular machine, usually via direct physical interactions with other molecular entities. Function in this sense denotes an action, or activity, that a gene product (or a complex) performs.\" [GOC:pdt]",
+        "is_a": "",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0005575",
+        "name": "cellular_component",
+        "namespace": "cellular_component",
+        "def": "\"A location, relative to cellular compartments and structures, occupied by a macromolecular machine. There are three types of cellular components described in the gene ontology: (1) the cellular anatomical entity where a gene product carries out a molecular function (e.g., plasma membrane, cytoskeleton) or membrane-enclosed compartments (e.g., mitochondrion); (2) virion components, where viral proteins act, and (3) the stable macromolecular complexes of which gene product are parts (e.g., the clathrin complex).\" [GOC:pdt]",
+        "is_a": "",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0005622",
+        "name": "intracellular anatomical structure",
+        "namespace": "cellular_component",
+        "def": "\"A component of a cell contained within (but not including) the plasma membrane. In eukaryotes it includes the nucleus and cytoplasm.\" [ISBN:0198506732]",
+        "is_a": "GO:0110165",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0005737",
+        "name": "cytoplasm",
+        "namespace": "cellular_component",
+        "def": "\"The contents of a cell excluding the plasma membrane and nucleus, but including other subcellular structures.\" [ISBN:0198547684]",
+        "is_a": "GO:0110165",
+        "relationship": "part_of GO:0005622"
+    },
+    {
+        "id": "GO:0005773",
+        "name": "vacuole",
+        "namespace": "cellular_component",
+        "def": "\"A closed structure, found only in eukaryotic cells, that is completely surrounded by unit membrane and contains liquid material. Cells contain one or several vacuoles, that may have different functions from each other. Vacuoles have a diverse array of functions. They can act as a storage organelle for nutrients or waste products, as a degradative compartment, as a cost-effective way of increasing cell size, and as a homeostatic regulator controlling both turgor pressure and pH of the cytosol.\" [GOC:mtg_sensu, ISBN:0198506732]",
+        "is_a": "GO:0043231",
+        "relationship": "part_of GO:0005737"
+    },
+    {
+        "id": "GO:0005794",
+        "name": "Golgi apparatus",
+        "namespace": "cellular_component",
+        "def": "\"A membrane-bound cytoplasmic organelle of the endomembrane system that further processes the core oligosaccharides (e.g. N-glycans) added to proteins in the endoplasmic reticulum and packages them into membrane-bound vesicles. The Golgi apparatus operates at the intersection of the secretory, lysosomal, and endocytic pathways.\" [ISBN:0198506732]",
+        "is_a": "GO:0043231",
+        "relationship": "part_of GO:0005737,part_of GO:0012505"
+    },
+    {
+        "id": "GO:0005798",
+        "name": "Golgi-associated vesicle",
+        "namespace": "cellular_component",
+        "def": "\"Any vesicle associated with the Golgi complex and involved in mediating transport within the Golgi or between the Golgi and other parts of the cell.\" [GOC:mah]",
+        "is_a": "GO:0031410",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0005886",
+        "name": "plasma membrane",
+        "namespace": "cellular_component",
+        "def": "\"The membrane surrounding a cell that separates the cell from its external environment. It consists of a phospholipid bilayer and associated proteins.\" [ISBN:0716731363]",
+        "is_a": "GO:0016020",
+        "relationship": "part_of GO:0071944"
+    },
+    {
+        "id": "GO:0007154",
+        "name": "cell communication",
+        "namespace": "biological_process",
+        "def": "\"Any process that mediates interactions between a cell and its surroundings. Encompasses interactions such as signaling or attachment between one cell and another cell, between a cell and an extracellular matrix, or between a cell and any other aspect of its environment.\" [GOC:mah]",
+        "is_a": "GO:0009987",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0007165",
+        "name": "signal transduction",
+        "namespace": "biological_process",
+        "def": "\"The cellular process in which a signal is conveyed to trigger a change in the activity or state of a cell. Signal transduction begins with reception of a signal (e.g. a ligand binding to a receptor or receptor activation by a stimulus such as light), or for signal transduction in the absence of ligand, signal-withdrawal or the activity of a constitutively active receptor. Signal transduction ends with regulation of a downstream cellular process, e.g. regulation of transcription or regulation of a metabolic process. Signal transduction covers signaling from receptors located on the surface of the cell and signaling via molecules located within the cell. For signaling between cells, signal transduction is restricted to events at and within the receiving cell.\" [GOC:go_curators, GOC:mtg_signaling_feb11]",
+        "is_a": "GO:0009987,GO:0050794",
+        "relationship": "part_of GO:0007154,part_of GO:0023052,part_of GO:0051716"
+    },
+    {
+        "id": "GO:0007166",
+        "name": "cell surface receptor signaling pathway",
+        "namespace": "biological_process",
+        "def": "\"The series of molecular signals initiated by an extracellular ligand binding to a receptor located on the cell surface. The pathway ends with regulation of a downstream cellular process, e.g. transcription.\" [GOC:signaling]",
+        "is_a": "GO:0007165",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0007267",
+        "name": "cell-cell signaling",
+        "namespace": "biological_process",
+        "def": "\"Any process that mediates the transfer of information from one cell to another. This process includes signal transduction in the receiving cell and, where applicable, release of a ligand and any processes that actively facilitate its transport and presentation to the receiving cell. Examples include signaling via soluble ligands, via cell adhesion molecules and via gap junctions.\" [GOC:dos, GOC:mah]",
+        "is_a": "GO:0007154,GO:0023052",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0007268",
+        "name": "chemical synaptic transmission",
+        "namespace": "biological_process",
+        "def": "\"The vesicular release of classical neurotransmitter molecules from a presynapse, across a chemical synapse, the subsequent activation of neurotransmitter receptors at the postsynapse of a target cell (neuron, muscle, or secretory cell) and the effects of this activation on the postsynaptic membrane potential and ionic composition of the postsynaptic cytosol. This process encompasses both spontaneous and evoked release of neurotransmitter and all parts of synaptic vesicle exocytosis. Evoked transmission starts with the arrival of an action potential at the presynapse.\" [GOC:jl, MeSH:D009435]",
+        "is_a": "GO:0098916",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0008150",
+        "name": "biological_process",
+        "namespace": "biological_process",
+        "def": "\"A biological process is the execution of a genetically-encoded biological module or program. It consists of all the steps required to achieve the specific biological objective of the module. A biological process is accomplished by a particular set of molecular functions carried out by specific gene products (or macromolecular complexes), often in a highly regulated manner and in a particular temporal sequence.\" [GOC:pdt]",
+        "is_a": "",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0009987",
+        "name": "cellular process",
+        "namespace": "biological_process",
+        "def": "\"Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.\" [GOC:go_curators, GOC:isa_complete]",
+        "is_a": "GO:0008150",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0012505",
+        "name": "endomembrane system",
+        "namespace": "cellular_component",
+        "def": "\"A collection of membranous structures involved in transport within the cell. The main components of the endomembrane system are endoplasmic reticulum, Golgi bodies, vesicles, cell membrane and nuclear envelope. Members of the endomembrane system pass materials through each other or though the use of vesicles.\" [GOC:lh]",
+        "is_a": "GO:0110165",
+        "relationship": "has_part GO:0005773,has_part GO:0005886"
+    },
+    {
+        "id": "GO:0012506",
+        "name": "vesicle membrane",
+        "namespace": "cellular_component",
+        "def": "\"The lipid bilayer surrounding any membrane-bounded vesicle in the cell.\" [GOC:mah, GOC:vesicle]",
+        "is_a": "GO:0031090",
+        "relationship": "part_of GO:0031982"
+    },
+    {
+        "id": "GO:0016020",
+        "name": "membrane",
+        "namespace": "cellular_component",
+        "def": "\"A lipid bilayer along with all the proteins and protein complexes embedded in it and attached to it.\" [GOC:dos, GOC:mah, ISBN:0815316194]",
+        "is_a": "GO:0110165",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0023052",
+        "name": "signaling",
+        "namespace": "biological_process",
+        "def": "\"The entirety of a process in which information is transmitted within a biological system. This process begins with an active signal and ends when a cellular response has been triggered.\" [GOC:mtg_signal, GOC:mtg_signaling_feb11, GOC:signaling]",
+        "is_a": "GO:0050789",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0030054",
+        "name": "cell junction",
+        "namespace": "cellular_component",
+        "def": "\"A cellular component that forms a specialized region of connection between two or more cells, or between a cell and the extracellular matrix, or between two membrane-bound components of a cell, such as flagella.\" [GOC:aruk, GOC:bc, GOC:mah, ISBN:0198506732, PMID:26820516, PMID:28096264]",
+        "is_a": "GO:0110165",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0030117",
+        "name": "membrane coat",
+        "namespace": "cellular_component",
+        "def": "\"Any of several different proteinaceous coats that can associate with membranes. Membrane coats include those formed by clathrin plus an adaptor complex, the COPI and COPII complexes, and possibly others. They are found associated with membranes on many vesicles as well as other membrane features such as pits and perhaps tubules.\" [GOC:mah]",
+        "is_a": "GO:0098796",
+        "relationship": "part_of GO:0005737,part_of GO:0048475"
+    },
+    {
+        "id": "GO:0030120",
+        "name": "vesicle coat",
+        "namespace": "cellular_component",
+        "def": "\"A membrane coat found on a coated vesicle.\" [GOC:mah]",
+        "is_a": "GO:0030117",
+        "relationship": "part_of GO:0030662"
+    },
+    {
+        "id": "GO:0030126",
+        "name": "COPI vesicle coat",
+        "namespace": "cellular_component",
+        "def": "\"One of two multimeric complexes that forms a membrane vesicle coat. The mammalian COPI subunits are called alpha-, beta-, beta'-, gamma-, delta-, epsilon- and zeta-COP. Vesicles with COPI coats are found associated with Golgi membranes at steady state.\" [GOC:mah, PMID:11252894]",
+        "is_a": "GO:0030120",
+        "relationship": "part_of GO:0005794,part_of GO:0030663"
+    },
+    {
+        "id": "GO:0030135",
+        "name": "coated vesicle",
+        "namespace": "cellular_component",
+        "def": "\"Small membrane-bounded organelle formed by pinching off of a coated region of membrane. Some coats are made of clathrin, whereas others are made from other proteins.\" [ISBN:0815316194]",
+        "is_a": "GO:0031410",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0030137",
+        "name": "COPI-coated vesicle",
+        "namespace": "cellular_component",
+        "def": "\"A vesicle with a coat formed of the COPI coat complex proteins. COPI-coated vesicles are found associated with Golgi membranes at steady state, are involved in Golgi to endoplasmic reticulum (retrograde) vesicle transport, and possibly also in intra-Golgi transport.\" [GOC:mah, PMID:11252894]",
+        "is_a": "GO:0005798,GO:0030135",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0030594",
+        "name": "neurotransmitter receptor activity",
+        "namespace": "molecular_function",
+        "def": "\"Combining with a neurotransmitter and transmitting the signal to initiate a change in cell activity.\" [GOC:jl, GOC:signaling]",
+        "is_a": "GO:0038023",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0030659",
+        "name": "cytoplasmic vesicle membrane",
+        "namespace": "cellular_component",
+        "def": "\"The lipid bilayer surrounding a cytoplasmic vesicle.\" [GOC:mah]",
+        "is_a": "GO:0012506",
+        "relationship": "part_of GO:0031410"
+    },
+    {
+        "id": "GO:0030660",
+        "name": "Golgi-associated vesicle membrane",
+        "namespace": "cellular_component",
+        "def": "\"The lipid bilayer surrounding a vesicle associated with the Golgi apparatus.\" [GOC:mah]",
+        "is_a": "GO:0030659,GO:0098588",
+        "relationship": "part_of GO:0005798"
+    },
+    {
+        "id": "GO:0030662",
+        "name": "coated vesicle membrane",
+        "namespace": "cellular_component",
+        "def": "\"The lipid bilayer surrounding a coated vesicle.\" [GOC:mah]",
+        "is_a": "GO:0030659,GO:0098588",
+        "relationship": "part_of GO:0030135"
+    },
+    {
+        "id": "GO:0030663",
+        "name": "COPI-coated vesicle membrane",
+        "namespace": "cellular_component",
+        "def": "\"The lipid bilayer surrounding a COPI-coated vesicle.\" [GOC:mah]",
+        "is_a": "GO:0030660,GO:0030662",
+        "relationship": "part_of GO:0030137"
+    },
+    {
+        "id": "GO:0031090",
+        "name": "organelle membrane",
+        "namespace": "cellular_component",
+        "def": "\"A membrane that is one of the two lipid bilayers of an organelle envelope or the outermost membrane of single membrane bound organelle.\" [GOC:dos, GOC:mah]",
+        "is_a": "GO:0016020",
+        "relationship": "part_of GO:0043227"
+    },
+    {
+        "id": "GO:0031410",
+        "name": "cytoplasmic vesicle",
+        "namespace": "cellular_component",
+        "def": "\"A vesicle found in the cytoplasm of a cell.\" [GOC:ai, GOC:mah, GOC:vesicles]",
+        "is_a": "GO:0097708",
+        "relationship": "part_of GO:0005737"
+    },
+    {
+        "id": "GO:0031982",
+        "name": "vesicle",
+        "namespace": "cellular_component",
+        "def": "\"Any small, fluid-filled, spherical organelle enclosed by membrane.\" [GOC:mah, GOC:pz, GOC:vesicles]",
+        "is_a": "GO:0043227",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0032501",
+        "name": "multicellular organismal process",
+        "namespace": "biological_process",
+        "def": "\"Any biological process, occurring at the level of a multicellular organism, pertinent to its function.\" [GOC:curators, GOC:dph, GOC:isa_complete, GOC:tb]",
+        "is_a": "GO:0008150",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0032991",
+        "name": "protein-containing complex",
+        "namespace": "cellular_component",
+        "def": "\"A stable assembly of two or more macromolecules, i.e. proteins, nucleic acids, carbohydrates or lipids, in which at least one component is a protein and the constituent parts function together.\" [GOC:dos, GOC:mah]",
+        "is_a": "GO:0005575",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0038023",
+        "name": "signaling receptor activity",
+        "namespace": "molecular_function",
+        "def": "\"Receiving a signal and transmitting it in the cell to initiate a change in cell activity. A signal is a physical entity or change in state that is used to transfer information in order to trigger a response.\" [GOC:bf, GOC:signaling]",
+        "is_a": "GO:0060089",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0043226",
+        "name": "organelle",
+        "namespace": "cellular_component",
+        "def": "\"Organized structure of distinctive morphology and function. Includes the nucleus, mitochondria, plastids, vacuoles, vesicles, ribosomes and the cytoskeleton, and prokaryotic structures such as anammoxosomes and pirellulosomes. Excludes the plasma membrane.\" [GOC:go_curators]",
+        "is_a": "GO:0110165",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0043227",
+        "name": "membrane-bounded organelle",
+        "namespace": "cellular_component",
+        "def": "\"Organized structure of distinctive morphology and function, bounded by a single or double lipid bilayer membrane. Includes the nucleus, mitochondria, plastids, vacuoles, and vesicles. Excludes the plasma membrane.\" [GOC:go_curators]",
+        "is_a": "GO:0043226",
+        "relationship": "has_part GO:0016020"
+    },
+    {
+        "id": "GO:0043229",
+        "name": "intracellular organelle",
+        "namespace": "cellular_component",
+        "def": "\"Organized structure of distinctive morphology and function, occurring within the cell. Includes the nucleus, mitochondria, plastids, vacuoles, vesicles, ribosomes and the cytoskeleton. Excludes the plasma membrane.\" [GOC:go_curators]",
+        "is_a": "GO:0043226",
+        "relationship": "part_of GO:0005622"
+    },
+    {
+        "id": "GO:0043231",
+        "name": "intracellular membrane-bounded organelle",
+        "namespace": "cellular_component",
+        "def": "\"Organized structure of distinctive morphology and function, bounded by a single or double lipid bilayer membrane and occurring within the cell. Includes the nucleus, mitochondria, plastids, vacuoles, and vesicles. Excludes the plasma membrane.\" [GOC:go_curators]",
+        "is_a": "GO:0043227,GO:0043229",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0045202",
+        "name": "synapse",
+        "namespace": "cellular_component",
+        "def": "\"The junction between an axon of one neuron and a dendrite of another neuron, a muscle fiber or a glial cell. As the axon approaches the synapse it enlarges into a specialized structure, the presynaptic terminal bouton, which contains mitochondria and synaptic vesicles. At the tip of the terminal bouton is the presynaptic membrane; facing it, and separated from it by a minute cleft (the synaptic cleft) is a specialized area of membrane on the receiving cell, known as the postsynaptic membrane. In response to the arrival of nerve impulses, the presynaptic terminal bouton secretes molecules of neurotransmitters into the synaptic cleft. These diffuse across the cleft and transmit the signal to the postsynaptic membrane.\" [GOC:aruk, ISBN:0198506732, PMID:24619342, PMID:29383328, PMID:31998110]",
+        "is_a": "GO:0030054",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0045211",
+        "name": "postsynaptic membrane",
+        "namespace": "cellular_component",
+        "def": "\"A specialized area of membrane facing the presynaptic membrane on the tip of the nerve ending and separated from it by a minute cleft (the synaptic cleft). Neurotransmitters cross the synaptic cleft and transmit the signal to the postsynaptic membrane.\" [ISBN:0198506732]",
+        "is_a": "GO:0097060",
+        "relationship": "part_of GO:0098794"
+    },
+    {
+        "id": "GO:0048475",
+        "name": "coated membrane",
+        "namespace": "cellular_component",
+        "def": "\"A single or double lipid bilayer with any of several different proteinaceous coats that can associate with membranes. Membrane coats include those formed by clathrin plus an adaptor complex, the COPI and COPII complexes.\" [GOC:jid]",
+        "is_a": "GO:0016020",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0050789",
+        "name": "regulation of biological process",
+        "namespace": "biological_process",
+        "def": "\"Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule.\" [GOC:ai, GOC:go_curators]",
+        "is_a": "GO:0065007",
+        "relationship": "regulates GO:0008150"
+    },
+    {
+        "id": "GO:0050794",
+        "name": "regulation of cellular process",
+        "namespace": "biological_process",
+        "def": "\"Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level.\" [GOC:go_curators]",
+        "is_a": "GO:0050789",
+        "relationship": "regulates GO:0009987"
+    },
+    {
+        "id": "GO:0050877",
+        "name": "nervous system process",
+        "namespace": "biological_process",
+        "def": "\"A organ system process carried out by any of the organs or tissues of neurological system.\" [GOC:ai, GOC:mtg_cardio]",
+        "is_a": "GO:0003008",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0050896",
+        "name": "response to stimulus",
+        "namespace": "biological_process",
+        "def": "\"Any process that results in a change in state or activity of a cell or an organism (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus and ends with a change in state or activity or the cell or organism.\" [GOC:ai, GOC:bf]",
+        "is_a": "GO:0008150",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0051716",
+        "name": "cellular response to stimulus",
+        "namespace": "biological_process",
+        "def": "\"Any process that results in a change in state or activity of a cell (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus by a cell and ends with a change in state or activity or the cell.\" [GOC:bf, GOC:jl]",
+        "is_a": "GO:0009987,GO:0050896",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0060089",
+        "name": "molecular transducer activity",
+        "namespace": "molecular_function",
+        "def": "\"A compound molecular function in which an effector function is controlled by one or more regulatory components.\" [GOC:dos, GOC:pdt]",
+        "is_a": "GO:0003674",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0065007",
+        "name": "biological regulation",
+        "namespace": "biological_process",
+        "def": "\"Any process that modulates a measurable attribute of any biological process, quality or function.\" [GOC:dph, GOC:isa_complete, GOC:mah, GOC:pr, GOC:vw]",
+        "is_a": "GO:0008150",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0071944",
+        "name": "cell periphery",
+        "namespace": "cellular_component",
+        "def": "\"The broad region around and including the plasma membrane of a cell, encompassing the cell cortex (inside the cell), the plasma membrane, and any external encapsulating structures.\" [GOC:pdt]",
+        "is_a": "GO:0110165",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0097060",
+        "name": "synaptic membrane",
+        "namespace": "cellular_component",
+        "def": "\"A specialized area of membrane on either the presynaptic or the postsynaptic side of a synapse, the junction between a nerve fiber of one neuron and another neuron or muscle fiber or glial cell.\" [GOC:BHF, PMID:20410104]",
+        "is_a": "GO:0098590",
+        "relationship": "part_of GO:0045202"
+    },
+    {
+        "id": "GO:0097708",
+        "name": "intracellular vesicle",
+        "namespace": "cellular_component",
+        "def": "\"Any vesicle that is part of the intracellular region.\" [GOC:vesicles]",
+        "is_a": "GO:0031982,GO:0043231",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0098588",
+        "name": "bounding membrane of organelle",
+        "namespace": "cellular_component",
+        "def": "\"The lipid bilayer that forms the outer-most layer of an organelle.\" [GOC:dos]",
+        "is_a": "GO:0031090",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0098590",
+        "name": "plasma membrane region",
+        "namespace": "cellular_component",
+        "def": "\"A membrane that is a (regional) part of the plasma membrane.\" [GOC:dos]",
+        "is_a": "GO:0016020",
+        "relationship": "part_of GO:0005886"
+    },
+    {
+        "id": "GO:0098794",
+        "name": "postsynapse",
+        "namespace": "cellular_component",
+        "def": "\"The part of a synapse that is part of the post-synaptic cell.\" [GOC:dos]",
+        "is_a": "GO:0110165",
+        "relationship": "part_of GO:0045202"
+    },
+    {
+        "id": "GO:0098796",
+        "name": "membrane protein complex",
+        "namespace": "cellular_component",
+        "def": "\"Any protein complex that is part of a membrane.\" [GOC:dos]",
+        "is_a": "GO:0032991",
+        "relationship": "part_of GO:0016020"
+    },
+    {
+        "id": "GO:0098916",
+        "name": "anterograde trans-synaptic signaling",
+        "namespace": "biological_process",
+        "def": "\"Cell-cell signaling from pre to post-synapse, across the synaptic cleft.\" [GOC:dos]",
+        "is_a": "GO:0099537",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0098960",
+        "name": "postsynaptic neurotransmitter receptor activity",
+        "namespace": "molecular_function",
+        "def": "\"Neurotransmitter receptor activity occurring in the postsynaptic membrane during synaptic transmission.\" [GOC:dos, GOC:signaling]",
+        "is_a": "GO:0030594",
+        "relationship": "occurs_in GO:0045211,part_of GO:0099565"
+    },
+    {
+        "id": "GO:0099536",
+        "name": "synaptic signaling",
+        "namespace": "biological_process",
+        "def": "\"Cell-cell signaling to, from or within a synapse.\" [GOC:dos]",
+        "is_a": "GO:0007267",
+        "relationship": "occurs_in GO:0045202"
+    },
+    {
+        "id": "GO:0099537",
+        "name": "trans-synaptic signaling",
+        "namespace": "biological_process",
+        "def": "\"Cell-cell signaling in either direction across the synaptic cleft.\" [GOC:dos]",
+        "is_a": "GO:0099536",
+        "relationship": ""
+    },
+    {
+        "id": "GO:0099565",
+        "name": "chemical synaptic transmission, postsynaptic",
+        "namespace": "biological_process",
+        "def": "\"The part of synaptic transmission occurring in the post-synapse: a signal transduction pathway consisting of neurotransmitter receptor activation and its effects on postsynaptic membrane potential and the ionic composition of the postsynaptic cytosol.\" [GOC:dos]",
+        "is_a": "GO:0007166,GO:0050877",
+        "relationship": "occurs_in GO:0098794,part_of GO:0007268"
+    },
+    {
+        "id": "GO:0110165",
+        "name": "cellular anatomical entity",
+        "namespace": "cellular_component",
+        "def": "\"A part of a cellular organism that is either an immaterial entity or a material entity with granularity above the level of a protein complex but below that of an anatomical system. Or, a substance produced by a cellular organism with granularity above the level of a protein complex.\" [GOC:kmv]",
+        "is_a": "GO:0005575",
+        "relationship": ""
+    }
+]
