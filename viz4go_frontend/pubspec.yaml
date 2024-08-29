@@ -25,9 +25,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/found_paths_with_relations.json
-    - assets/go_nodes.csv
-    - assets/example.json
+    - assets/connections.json
+    - assets/go_terms.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
