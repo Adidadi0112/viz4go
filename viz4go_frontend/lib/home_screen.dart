@@ -75,7 +75,6 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
 
   @override
   void initState() {
-    
     super.initState();
   }
 

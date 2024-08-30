@@ -25,27 +25,50 @@ def get_connections(df, start_node):
     visited = set()
     stack = [start_node]
 
+    print(f"Starting node: {start_node}")
+    
     while stack:
         current_node = stack.pop()
+        print(f"\nPopped node from stack: {current_node}")
+        
         if current_node in visited:
+            print(f"Node {current_node} already visited, skipping.")
             continue
         visited.add(current_node)
         
         row = df.loc[df['id'] == current_node]
         if row.empty:
+            print(f"No data found for node: {current_node}")
             continue
-        
+        print(f"Row data for {current_node}: {row}")
+
         is_a_values = row['is_a'].values[0]
-        if type(is_a_values) != float:
+        if isinstance(is_a_values, list) or isinstance(is_a_values, str):
+            print(f"Found 'is_a' relationships for {current_node}: {is_a_values}")
+            if isinstance(is_a_values, str):
+                is_a_values = eval(is_a_values)  # Converts string representation of a list to an actual list
             for target_node in is_a_values:
                 connections.append((current_node, target_node, 'is_a'))
                 stack.append(target_node)
-        
+        else:
+            print(f"No 'is_a' relationships for {current_node}")
+
         relationship_values = row['relationship'].values[0]
-        if type(relationship_values) != float:
+        if isinstance(relationship_values, list) or isinstance(relationship_values, str):
+            print(f"Found 'relationship' values for {current_node}: {relationship_values}")
+            if isinstance(relationship_values, str):
+                relationship_values = eval(relationship_values)  # Converts string representation of a list to an actual list
             for relationship in relationship_values:
-                rel_type, target_node = relationship.split(' ')
-                connections.append((current_node, target_node, rel_type))
-                stack.append(target_node)
+                parts = relationship.split(' ')
+                if len(parts) == 2:
+                    rel_type, target_node = parts
+                    connections.append((current_node, target_node, rel_type))
+                    stack.append(target_node)
+                    print(f"Added connection: ({current_node}, {target_node}, {rel_type})")
+                else:
+                    print(f"Warning: unexpected relationship format '{relationship}' for node {current_node}")
+        else:
+            print(f"No 'relationship' values for {current_node}")
     
+    print(f"\nFinal connections: {connections}")
     return connections
