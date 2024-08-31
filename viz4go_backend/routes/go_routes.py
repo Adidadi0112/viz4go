@@ -18,25 +18,26 @@ def get_go_term(term_id):
     term_dict = {k: term[k] for k in term.keys()}
     return jsonify(term_dict)
 
-@go_bp.route('/terms', methods=['GET'])
+@go_bp.route('/terms', methods=['POST'])
 def get_go_terms():
-    term_ids = request.args.getlist('term_ids')
-    
+    term_ids = request.json.get('term_ids')
+
     if not term_ids:
         return jsonify({'error': 'No term IDs provided'}), 400
-    
+
     conn = get_db_connection()
     placeholders = ','.join('?' for _ in term_ids)
     query = f'SELECT * FROM go_terms WHERE id IN ({placeholders})'
     terms = conn.execute(query, term_ids).fetchall()
     conn.close()
-    
+
     if not terms:
         return jsonify({'error': 'No terms found for the given IDs'}), 404
-    
+
     terms_list = [{k: term[k] for k in term.keys()} for term in terms]
-    
+    print(terms_list)
     return jsonify(terms_list)
+
 
 
 # Trasa do sprawdzania najkrótszych ścieżek
@@ -58,7 +59,6 @@ def get_paths():
     
     return jsonify({'paths': paths_with_relations})
 
-# Trasa do uzyskiwania połączeń
 '''
 example
 curl -X POST http://127.0.0.1:5000/api/go/connections \
@@ -69,7 +69,7 @@ curl -X POST http://127.0.0.1:5000/api/go/connections \
 def get_node_connections():
     data = request.json
     start_node = data.get('start_node')
-    
+    print(start_node)
     if not start_node:
         return jsonify({'error': 'No start node provided'}), 400
     
@@ -79,4 +79,4 @@ def get_node_connections():
     
     connections = get_connections(nodes_df, start_node)
     
-    return jsonify({'connections': list(connections)})
+    return jsonify(connections)

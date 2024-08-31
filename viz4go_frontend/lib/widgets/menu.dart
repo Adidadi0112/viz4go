@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:viz4go_frontend/home_screen.dart';
+import 'package:viz4go_frontend/services/api_service.dart';
 
 class MenuWidget extends StatefulWidget {
   final Future<void> Function() onLoadData;
   final TextEditingController goIdController;
   final List<String> activeFilters;
   final void Function(LayoutMode) onLayoutModeChanged;
+  final void Function(List<dynamic>) onConnectionsUpdated;
 
-  const MenuWidget({
+  MenuWidget({
     super.key,
     required this.onLoadData,
     required this.goIdController,
     required this.activeFilters,
-    required this.onLayoutModeChanged, // Dodane
+    required this.onLayoutModeChanged, 
+    required this.onConnectionsUpdated,
   });
 
   @override
@@ -20,7 +23,14 @@ class MenuWidget extends StatefulWidget {
 }
 
 class _MenuWidgetState extends State<MenuWidget> {
-  LayoutMode _selectedLayoutMode = LayoutMode.random; // default
+  LayoutMode _selectedLayoutMode = LayoutMode.random;
+
+  void _loadGraph() async {
+    List<String> goIds = widget.goIdController.text.split(' ');
+    goIds = goIds.map((e) => e.replaceAll('\n', '')).toList();
+    final connections = await ApiService().fetchGoConnections(goIds);
+    widget.onConnectionsUpdated(connections); 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +50,17 @@ class _MenuWidgetState extends State<MenuWidget> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               TextButton.icon(
-                onPressed: widget.onLoadData,
-                icon: const Icon(Icons.refresh,
-                    color: Color.fromARGB(255, 237, 224, 219)),
-                label: const Text('Load data',
-                    style:
-                        TextStyle(color: Color.fromARGB(255, 237, 224, 219))),
+                onPressed: _loadGraph,
+                icon: const Icon(
+                  Icons.refresh,
+                  color: Color.fromARGB(255, 237, 224, 219),
+                ),
+                label: const Text(
+                  'Load data',
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 237, 224, 219),
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
               TextFormField(
@@ -74,7 +89,8 @@ class _MenuWidgetState extends State<MenuWidget> {
               ),
               const SizedBox(height: 8),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                },
                 icon: const Icon(
                   Icons.file_present_outlined,
                   color: Color.fromARGB(255, 237, 224, 219),

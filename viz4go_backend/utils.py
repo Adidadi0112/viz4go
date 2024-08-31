@@ -20,12 +20,12 @@ def check_all_shortest_paths(graph, ontology_ids):
              
     return found_paths_with_relations
 
-def get_connections(df, start_node):
+def get_connections(df, start_nodes):
     connections = []
     visited = set()
-    stack = [start_node]
+    stack = start_nodes
 
-    print(f"Starting node: {start_node}")
+    print(f"Initial stack nodes: {start_nodes}")
     
     while stack:
         current_node = stack.pop()

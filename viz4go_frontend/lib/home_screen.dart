@@ -2,11 +2,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:viz4go_frontend/models/Node.dart';
 import 'package:viz4go_frontend/models/tree_node.dart';
 import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/menu.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
 import 'package:viz4go_frontend/widgets/viz4go_label.dart';
+import 'package:viz4go_frontend/services/api_service.dart';
 
 enum LayoutMode { random, circular, twoColumn, tree}
 
@@ -24,6 +26,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> _activeFilters = ['is_a', 'part_of'];
   LayoutMode _currentLayoutMode = LayoutMode.random;
   final TextEditingController _goIdController = TextEditingController();
+
+  void _GenerateGraphFromTextField(List<dynamic> newItems) {
+    setState(() {
+      _items = newItems;
+    });
+    loadGraph(_items);
+  }
 
   Future<void> readJson() async {
     try {
@@ -58,7 +67,7 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
   }
 }
 
-  void loadGraph(List<dynamic> list) {
+  Future<void> loadGraph(List<dynamic> list) async {
     _positions.clear();
     _nodeIndex = {};
     int index = 0;
@@ -70,6 +79,7 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
         _nodeIndex[connection[1]] = index++;
       }
     }
+    List<Node> goTerms = await ApiService().fetchGoTermsByNodeIndex(_nodeIndex);
     _positions = _generateRandomPositions(_nodeIndex.length, const Rect.fromLTWH(0, 0, 800, 700));
   }
 
@@ -125,7 +135,6 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
                   : const Viz4goLabel()),
           MenuWidget(
             onLoadData: () async {
-              await readJson();
               setState(() {
                 loadGraph(_items);
               });
@@ -133,6 +142,7 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
             goIdController: _goIdController,
             activeFilters: _activeFilters,
             onLayoutModeChanged: _updateLayoutMode,
+            onConnectionsUpdated: _GenerateGraphFromTextField,
           ),
         ],
       ),
