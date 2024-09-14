@@ -20,7 +20,7 @@ class Node {
     return Node(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      definition: json['def'] as String?,  // Zaktualizowane dla pola def
+      definition: json['def'] as String?,  
       namespace: json['namespace'] as String?,
       isA: json['is_a'] as String?,
       relationship: json['relationship'] as String?,

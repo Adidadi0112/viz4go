@@ -10,7 +10,7 @@ import 'package:viz4go_frontend/widgets/node.dart';
 import 'package:viz4go_frontend/widgets/viz4go_label.dart';
 import 'package:viz4go_frontend/services/api_service.dart';
 
-enum LayoutMode { random, circular, twoColumn, tree}
+enum LayoutMode { random, circular, twoColumn, tree }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,10 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   late final Map<String, int> _nodeIndex;
   List<dynamic> _items = [];
   final List<String> _activeFilters = ['is_a', 'part_of'];
+  List<Node> _nodesData = [];
   LayoutMode _currentLayoutMode = LayoutMode.random;
   final TextEditingController _goIdController = TextEditingController();
+  bool isLoading = false; // Zmienna do śledzenia ładowania
 
-  void _GenerateGraphFromTextField(List<dynamic> newItems) {
+  void _generateGraphFromTextField(List<dynamic> newItems) {
     setState(() {
       _items = newItems;
     });
@@ -36,38 +38,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> readJson() async {
     try {
-      print('Loading data...');
       final String response = await rootBundle.loadString('connections.json');
       final data = await json.decode(response);
       setState(() {
         _items = data;
       });
     } catch (e) {
-      print('Error loading data: $e');
     }
   }
 
   void _updateLayoutMode(LayoutMode newMode) {
-  setState(() {
-    _currentLayoutMode = newMode;
-    _positions = _generatePositions(_nodeIndex.length, const Rect.fromLTWH(0, 0, 800, 700));
-  });
-}
-
-List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
-  switch (_currentLayoutMode) {
-    case LayoutMode.random:
-      return _generateRandomPositions(count, area);
-    case LayoutMode.circular:
-      return _generateCircularPositions(count, area, 0.4, 0.8);
-    case LayoutMode.twoColumn:
-      return _generateTwoColumnPositions(count, const Rect.fromLTWH(0, 0, 800, 1500));
-    case LayoutMode.tree:
-      return _generateTreePositions(_nodeIndex, _items, area);
+    setState(() {
+      _currentLayoutMode = newMode;
+      _positions = _generatePositions(
+          _nodeIndex.length, const Rect.fromLTWH(0, 0, 800, 700));
+    });
   }
-}
+
+  List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
+    switch (_currentLayoutMode) {
+      case LayoutMode.random:
+        return _generateRandomPositions(count, area);
+      case LayoutMode.circular:
+        return _generateCircularPositions(count, area, 0.4, 0.8);
+      case LayoutMode.twoColumn:
+        return _generateTwoColumnPositions(
+            count, const Rect.fromLTWH(0, 0, 800, 1500));
+      case LayoutMode.tree:
+        return _generateTreePositions(_nodeIndex, _items, area);
+    }
+  }
 
   Future<void> loadGraph(List<dynamic> list) async {
+    setState(() {
+      isLoading = true; // Ustawienie stanu ładowania
+    });
     _positions.clear();
     _nodeIndex = {};
     int index = 0;
@@ -79,8 +84,13 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
         _nodeIndex[connection[1]] = index++;
       }
     }
-    List<Node> goTerms = await ApiService().fetchGoTermsByNodeIndex(_nodeIndex);
-    _positions = _generateRandomPositions(_nodeIndex.length, const Rect.fromLTWH(0, 0, 800, 700));
+    _positions = _generateRandomPositions(
+        _nodeIndex.length, const Rect.fromLTWH(0, 0, 800, 700));
+    final List<Node> nodesData = await ApiService().fetchGoTermsByNodeIndex(_nodeIndex);
+    setState(() {
+      _nodesData = nodesData;
+      isLoading = false; // Wyłączenie stanu ładowania po zakończeniu
+    });
   }
 
   @override
@@ -94,10 +104,15 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
       backgroundColor: Colors.blueGrey[300],
       body: Stack(
         children: [
-          SizedBox(
+          if (isLoading)
+            const Center(
+              child: SizedBox(height: 200, width: 200, child: CircularProgressIndicator()),
+            )
+          else
+            SizedBox(
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
-              child: _items.isNotEmpty == true
+              child: _items.isNotEmpty
                   ? InteractiveViewer(
                       constrained: false,
                       boundaryMargin: const EdgeInsets.all(500),
@@ -110,29 +125,32 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
                         child: Stack(
                           children: [
                             CustomPaint(
-                              painter: LinePainter(
-                                  _positions, _items, _nodeIndex, _activeFilters),
+                              painter: LinePainter(_positions, _items,
+                                  _nodeIndex, _activeFilters),
                               child: Container(),
                             ),
                             for (var entry in _nodeIndex.entries)
                               ValueListenableBuilder<Offset>(
                                 valueListenable: _positions[entry.value],
                                 builder: (context, position, child) {
+                                  final node = _nodesData.firstWhere((n) => n.id == entry.key);
                                   return Positioned(
                                     left: position.dx,
                                     top: position.dy,
                                     child: NodeWidget(
                                       entry: entry,
                                       positions: _positions,
+                                      nodeData: node,
                                     ),
                                   );
                                 },
-                              )
+                              ),
                           ],
                         ),
                       ),
                     )
-                  : const Viz4goLabel()),
+                  : const Viz4goLabel(),
+            ),
           MenuWidget(
             onLoadData: () async {
               setState(() {
@@ -142,65 +160,74 @@ List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
             goIdController: _goIdController,
             activeFilters: _activeFilters,
             onLayoutModeChanged: _updateLayoutMode,
-            onConnectionsUpdated: _GenerateGraphFromTextField,
+            onConnectionsUpdated: _generateGraphFromTextField,
           ),
         ],
       ),
     );
   }
 
-  List<ValueNotifier<Offset>> _generateTreePositions(Map<String, int> nodeIndex, List<dynamic> items, Rect area) {
-  Map<String, TreeNode> treeNodes = {};
+  List<ValueNotifier<Offset>> _generateTreePositions(
+      Map<String, int> nodeIndex, List<dynamic> items, Rect area) {
+    Map<String, TreeNode> treeNodes = {};
 
-  try {
-    for (var connection in items) {
-      if (connection is List && connection.length >= 2) {
-        final parent = connection[0] as String;
-        final child = connection[1] as String;      
-        if (!treeNodes.containsKey(parent)) {
-          treeNodes[parent] = TreeNode(parent);
+    try {
+      for (var connection in items) {
+        if (connection is List && connection.length >= 2) {
+          final parent = connection[0] as String;
+          final child = connection[1] as String;
+          if (!treeNodes.containsKey(parent)) {
+            treeNodes[parent] = TreeNode(parent);
+          }
+          if (!treeNodes.containsKey(child)) {
+            treeNodes[child] = TreeNode(child);
+          }
+
+          treeNodes[parent]!.children.add(child);
+        } else {
+          print('Invalid connection format: $connection');
         }
-        if (!treeNodes.containsKey(child)) {
-          treeNodes[child] = TreeNode(child);
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+
+    List<ValueNotifier<Offset>> positions = List.generate(
+        nodeIndex.length, (_) => ValueNotifier<Offset>(Offset.zero));
+
+    void _setPosition(String nodeId, double x, double y, double dx,
+        Map<String, TreeNode> nodes) {
+      final index = nodeIndex[nodeId]!;
+      positions[index].value = Offset(x, y);
+
+      final children = nodes[nodeId]!.children;
+      if (children.isNotEmpty) {
+        int childCount = children.length;
+
+        double adjustedDx = dx;
+        if (childCount > 4) {
+          adjustedDx *= 2.5;
         }
 
-        treeNodes[parent]!.children.add(child);
-      } else {
-        print('Invalid connection format: $connection');
+        for (var i = 0; i < children.length; i++) {
+          _setPosition(
+              children[i],
+              x + (i - (children.length - 1) / 2) * adjustedDx,
+              y + 100,
+              adjustedDx / 2,
+              nodes);
+        }
       }
     }
-  } catch (e) {
-    print('Error: $e');
+
+    String root =
+        treeNodes.keys.firstWhere((id) => !items.any((item) => item[1] == id));
+    _setPosition(root, area.width / 2, 50, area.width / 4, treeNodes);
+
+    return positions;
   }
-
-  List<ValueNotifier<Offset>> positions = List.generate(nodeIndex.length, (_) => ValueNotifier<Offset>(Offset.zero));
-
-  void _setPosition(String nodeId, double x, double y, double dx, Map<String, TreeNode> nodes) {
-    final index = nodeIndex[nodeId]!; 
-    positions[index].value = Offset(x, y);
-
-    final children = nodes[nodeId]!.children;
-    if (children.isNotEmpty) {
-      int childCount = children.length;
-
-      double adjustedDx = dx;
-      if (childCount > 4) {
-        adjustedDx *= 2.5;
-      }
-
-      for (var i = 0; i < children.length; i++) {
-        _setPosition(children[i], x + (i - (children.length - 1) / 2) * adjustedDx, y + 100, adjustedDx / 2, nodes);
-      }
-    }
-  }
-
-  String root = treeNodes.keys.firstWhere((id) => !items.any((item) => item[1] == id)); 
-  _setPosition(root, area.width / 2, 50, area.width / 4, treeNodes);
-
-  return positions;
 }
 
-}
 
 List<ValueNotifier<Offset>> _generateRandomPositions(int count, Rect area) {
   final random = Random();
@@ -211,15 +238,16 @@ List<ValueNotifier<Offset>> _generateRandomPositions(int count, Rect area) {
   });
 }
 
-List<ValueNotifier<Offset>> _generateCircularPositions(int count, Rect area, double innerRadiusRatio, double outerRadiusRatio) {
+List<ValueNotifier<Offset>> _generateCircularPositions(
+    int count, Rect area, double innerRadiusRatio, double outerRadiusRatio) {
   final random = Random();
   final center = Offset(area.left + area.width / 2, area.top + area.height / 2);
   final innerRadius = min(area.width, area.height) * innerRadiusRatio / 2;
   final outerRadius = min(area.width, area.height) * outerRadiusRatio / 2;
 
   List<ValueNotifier<Offset>> positions = [];
-  int innerCount = (count * 0.5).toInt(); 
-  int outerCount = count - innerCount; 
+  int innerCount = (count * 0.5).toInt();
+  int outerCount = count - innerCount;
 
   for (int i = 0; i < innerCount; i++) {
     double angle = random.nextDouble() * 2 * pi;
@@ -241,13 +269,13 @@ List<ValueNotifier<Offset>> _generateCircularPositions(int count, Rect area, dou
 }
 
 List<ValueNotifier<Offset>> _generateTwoColumnPositions(int count, Rect area) {
-  final double columnWidth = area.width / 2; 
-  const double padding = 100.0; 
-  final double columnHeight = area.height; 
+  final double columnWidth = area.width / 2;
+  const double padding = 100.0;
+  final double columnHeight = area.height;
 
   List<ValueNotifier<Offset>> positions = [];
-  
-  int columnCount = (count / 2).ceil(); 
+
+  int columnCount = (count / 2).ceil();
   int halfCount = count - columnCount;
 
   for (int i = 0; i < columnCount; i++) {
@@ -264,4 +292,3 @@ List<ValueNotifier<Offset>> _generateTwoColumnPositions(int count, Rect area) {
 
   return positions;
 }
-

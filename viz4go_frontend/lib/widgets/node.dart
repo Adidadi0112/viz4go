@@ -1,16 +1,32 @@
 import 'package:flutter/material.dart';
+import '../models/Node.dart';
 
 class NodeWidget extends StatelessWidget {
   final MapEntry<String, int> entry;
   final List<ValueNotifier<Offset>> positions;
+  final Node nodeData;
 
-  const NodeWidget({super.key, required this.entry, required this.positions});
+  const NodeWidget({super.key, required this.entry, required this.positions, required this.nodeData});
 
   @override
   Widget build(BuildContext context) {
 
-    const width = 80.0; 
-    const height = 50.0; 
+    const width = 125.0;  // Zwiększenie szerokości dla lepszej przejrzystości
+    const height = 80.0;  // Zwiększenie wysokości dla więcej treści
+
+    // Ustawienie koloru w zależności od namespace
+    Color getNodeColor() {
+      switch (nodeData.namespace) {
+        case 'cellular_component':
+          return Colors.blueAccent.withOpacity(0.8);
+        case 'biological_process':
+          return Colors.greenAccent.withOpacity(0.8);
+        case 'molecular_function':
+          return Colors.orangeAccent.withOpacity(0.8);
+        default:
+          return Colors.grey.withOpacity(0.8); // domyślny kolor
+      }
+    }
 
     return Draggable(
       feedback: Container(
@@ -20,17 +36,28 @@ class NodeWidget extends StatelessWidget {
         height: height,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 237, 224, 219).withOpacity(0.5),
+          color: getNodeColor().withOpacity(0.5), // Kolor podczas przeciągania
           borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(2, 2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               entry.key,
-              style: const TextStyle(fontSize: 10, color: Colors.black),
+              style: const TextStyle(fontSize: 12, color: Colors.black),
             ),
-            const Text('name'),
+            Text(
+              nodeData.name,
+              style: const TextStyle(fontSize: 10, color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -42,17 +69,29 @@ class NodeWidget extends StatelessWidget {
         height: height,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 255, 225, 212),
+          color: getNodeColor(), // Kolor zależny od namespace
           borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(2, 2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 4),
             Text(
               entry.key,
-              style: const TextStyle(fontSize: 10, color: Colors.black),
+              style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
             ),
-            const Text('name'),
+            Text(
+              nodeData.name,
+              style: const TextStyle(fontSize: 10, color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

@@ -13,13 +13,12 @@ class ApiService {
       '127.0.0.1:5000',  
       '/api/go/terms',
     );
-    print('skrrrt');
     final response = await http.post(
       uri,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'term_ids': termIds}),
     );
-    
+
     if (response.statusCode == 200) {
       final List<dynamic> responseData = jsonDecode(response.body) as List<dynamic>;
       return responseData.map((term) => Node.fromJson(term)).toList();
@@ -34,6 +33,7 @@ class ApiService {
     throw Exception('Error: $e');
   }
 }
+
 
 
   Future<List<dynamic>> fetchGoConnections(List<String> goTermIds) async {
