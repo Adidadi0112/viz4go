@@ -1,14 +1,13 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:viz4go_frontend/models/Node.dart';
-import 'package:viz4go_frontend/models/tree_node.dart';
 import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/menu.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
 import 'package:viz4go_frontend/widgets/viz4go_label.dart';
 import 'package:viz4go_frontend/services/api_service.dart';
+import 'package:viz4go_frontend/services/position_generator.dart';
 
 enum LayoutMode { random, circular, twoColumn, tree }
 
@@ -27,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Node> _nodesData = [];
   LayoutMode _currentLayoutMode = LayoutMode.random;
   final TextEditingController _goIdController = TextEditingController();
-  bool isLoading = false; // Zmienna do śledzenia ładowania
+  bool isLoading = false;
 
   void _generateGraphFromTextField(List<dynamic> newItems) {
     setState(() {
@@ -44,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _items = data;
       });
     } catch (e) {
+      print('Error: $e');
     }
   }
 
@@ -58,20 +58,22 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ValueNotifier<Offset>> _generatePositions(int count, Rect area) {
     switch (_currentLayoutMode) {
       case LayoutMode.random:
-        return _generateRandomPositions(count, area);
+        return PositionGenerator.generateRandomPositions(count, area);
       case LayoutMode.circular:
-        return _generateCircularPositions(count, area, 0.4, 0.8);
+        return PositionGenerator.generateCircularPositions(
+            count, area, 0.4, 0.8);
       case LayoutMode.twoColumn:
-        return _generateTwoColumnPositions(
+        return PositionGenerator.generateTwoColumnPositions(
             count, const Rect.fromLTWH(0, 0, 800, 1500));
       case LayoutMode.tree:
-        return _generateTreePositions(_nodeIndex, _items, area);
+        return PositionGenerator.generateTreePositions(
+            _nodeIndex, _items, area);
     }
   }
 
   Future<void> loadGraph(List<dynamic> list) async {
     setState(() {
-      isLoading = true; // Ustawienie stanu ładowania
+      isLoading = true;
     });
     _positions.clear();
     _nodeIndex = {};
@@ -84,18 +86,24 @@ class _HomeScreenState extends State<HomeScreen> {
         _nodeIndex[connection[1]] = index++;
       }
     }
-    _positions = _generateRandomPositions(
+    _positions = PositionGenerator.generateRandomPositions(
         _nodeIndex.length, const Rect.fromLTWH(0, 0, 800, 700));
-    final List<Node> nodesData = await ApiService().fetchGoTermsByNodeIndex(_nodeIndex);
+    final List<Node> nodesData =
+        await ApiService().fetchGoTermsByNodeIndex(_nodeIndex);
     setState(() {
       _nodesData = nodesData;
-      isLoading = false; // Wyłączenie stanu ładowania po zakończeniu
+      isLoading = false;
     });
   }
+
+  TransformationController _transformationController =
+      TransformationController();
 
   @override
   void initState() {
     super.initState();
+    _transformationController.value = Matrix4.identity()
+      ..translate(-2000.0, -2000.0);
   }
 
   @override
@@ -106,7 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           if (isLoading)
             const Center(
-              child: SizedBox(height: 200, width: 200, child: CircularProgressIndicator()),
+              child: SizedBox(
+                  height: 200, width: 200, child: CircularProgressIndicator()),
             )
           else
             SizedBox(
@@ -114,8 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
               width: MediaQuery.of(context).size.width,
               child: _items.isNotEmpty
                   ? InteractiveViewer(
+                      transformationController: _transformationController,
                       constrained: false,
-                      boundaryMargin: const EdgeInsets.all(500),
+                      boundaryMargin: const EdgeInsets.all(2000),
                       minScale: 0.5,
                       maxScale: 5.0,
                       child: Container(
@@ -133,7 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               ValueListenableBuilder<Offset>(
                                 valueListenable: _positions[entry.value],
                                 builder: (context, position, child) {
-                                  final node = _nodesData.firstWhere((n) => n.id == entry.key);
+                                  final node = _nodesData
+                                      .firstWhere((n) => n.id == entry.key);
                                   return Positioned(
                                     left: position.dx,
                                     top: position.dy,
@@ -166,129 +177,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  List<ValueNotifier<Offset>> _generateTreePositions(
-      Map<String, int> nodeIndex, List<dynamic> items, Rect area) {
-    Map<String, TreeNode> treeNodes = {};
-
-    try {
-      for (var connection in items) {
-        if (connection is List && connection.length >= 2) {
-          final parent = connection[0] as String;
-          final child = connection[1] as String;
-          if (!treeNodes.containsKey(parent)) {
-            treeNodes[parent] = TreeNode(parent);
-          }
-          if (!treeNodes.containsKey(child)) {
-            treeNodes[child] = TreeNode(child);
-          }
-
-          treeNodes[parent]!.children.add(child);
-        } else {
-          print('Invalid connection format: $connection');
-        }
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-
-    List<ValueNotifier<Offset>> positions = List.generate(
-        nodeIndex.length, (_) => ValueNotifier<Offset>(Offset.zero));
-
-    void _setPosition(String nodeId, double x, double y, double dx,
-        Map<String, TreeNode> nodes) {
-      final index = nodeIndex[nodeId]!;
-      positions[index].value = Offset(x, y);
-
-      final children = nodes[nodeId]!.children;
-      if (children.isNotEmpty) {
-        int childCount = children.length;
-
-        double adjustedDx = dx;
-        if (childCount > 4) {
-          adjustedDx *= 2.5;
-        }
-
-        for (var i = 0; i < children.length; i++) {
-          _setPosition(
-              children[i],
-              x + (i - (children.length - 1) / 2) * adjustedDx,
-              y + 100,
-              adjustedDx / 2,
-              nodes);
-        }
-      }
-    }
-
-    String root =
-        treeNodes.keys.firstWhere((id) => !items.any((item) => item[1] == id));
-    _setPosition(root, area.width / 2, 50, area.width / 4, treeNodes);
-
-    return positions;
-  }
-}
-
-
-List<ValueNotifier<Offset>> _generateRandomPositions(int count, Rect area) {
-  final random = Random();
-  return List.generate(count, (index) {
-    final x = random.nextDouble() * area.width + area.left;
-    final y = random.nextDouble() * area.height + area.top;
-    return ValueNotifier<Offset>(Offset(x, y));
-  });
-}
-
-List<ValueNotifier<Offset>> _generateCircularPositions(
-    int count, Rect area, double innerRadiusRatio, double outerRadiusRatio) {
-  final random = Random();
-  final center = Offset(area.left + area.width / 2, area.top + area.height / 2);
-  final innerRadius = min(area.width, area.height) * innerRadiusRatio / 2;
-  final outerRadius = min(area.width, area.height) * outerRadiusRatio / 2;
-
-  List<ValueNotifier<Offset>> positions = [];
-  int innerCount = (count * 0.5).toInt();
-  int outerCount = count - innerCount;
-
-  for (int i = 0; i < innerCount; i++) {
-    double angle = random.nextDouble() * 2 * pi;
-    double radius = innerRadius;
-    double x = center.dx + radius * cos(angle);
-    double y = center.dy + radius * sin(angle);
-    positions.add(ValueNotifier<Offset>(Offset(x, y)));
-  }
-
-  for (int i = 0; i < outerCount; i++) {
-    double angle = random.nextDouble() * 2 * pi;
-    double radius = outerRadius;
-    double x = center.dx + radius * cos(angle);
-    double y = center.dy + radius * sin(angle);
-    positions.add(ValueNotifier<Offset>(Offset(x, y)));
-  }
-
-  return positions;
-}
-
-List<ValueNotifier<Offset>> _generateTwoColumnPositions(int count, Rect area) {
-  final double columnWidth = area.width / 2;
-  const double padding = 100.0;
-  final double columnHeight = area.height;
-
-  List<ValueNotifier<Offset>> positions = [];
-
-  int columnCount = (count / 2).ceil();
-  int halfCount = count - columnCount;
-
-  for (int i = 0; i < columnCount; i++) {
-    double x = area.left + columnWidth / 2 - padding;
-    double y = area.top + i * (columnHeight / columnCount);
-    positions.add(ValueNotifier<Offset>(Offset(x, y)));
-  }
-
-  for (int i = 0; i < halfCount; i++) {
-    double x = area.left + columnWidth + padding;
-    double y = area.top + i * (columnHeight / halfCount);
-    positions.add(ValueNotifier<Offset>(Offset(x, y)));
-  }
-
-  return positions;
 }
