@@ -6,13 +6,15 @@ class NodeWidget extends StatelessWidget {
   final List<ValueNotifier<Offset>> positions;
   final Node nodeData;
 
-  const NodeWidget({super.key, required this.entry, required this.positions, required this.nodeData});
+  const NodeWidget(
+      {super.key,
+      required this.entry,
+      required this.positions,
+      required this.nodeData});
 
   @override
   Widget build(BuildContext context) {
-
-    const width = 125.0;  // Zwiększenie szerokości dla lepszej przejrzystości
-    const height = 80.0;  // Zwiększenie wysokości dla więcej treści
+    const width = 135.0; // Zwiększenie szerokości dla lepszej przejrzystości
 
     // Ustawienie koloru w zależności od namespace
     Color getNodeColor() {
@@ -29,12 +31,10 @@ class NodeWidget extends StatelessWidget {
     }
 
     return Draggable(
-      feedback: Container(
-      ),
+      feedback: Container(),
       childWhenDragging: Container(
         width: width,
-        height: height,
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           color: getNodeColor().withOpacity(0.5), // Kolor podczas przeciągania
           borderRadius: BorderRadius.circular(12),
@@ -47,7 +47,6 @@ class NodeWidget extends StatelessWidget {
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               entry.key,
@@ -66,7 +65,6 @@ class NodeWidget extends StatelessWidget {
       },
       child: Container(
         width: width,
-        height: height,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: getNodeColor(), // Kolor zależny od namespace
@@ -80,12 +78,14 @@ class NodeWidget extends StatelessWidget {
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 4),
             Text(
               entry.key,
-              style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
             ),
             Text(
               nodeData.name,

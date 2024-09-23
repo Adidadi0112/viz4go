@@ -15,19 +15,18 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: const ColorScheme(
-            primary: Color(0xFF795548), // Ciemny brąz, elegancki i neutralny
-            surface: Color(0xFFFAF3E0), // Jasny beżowy, delikatne tło
-            brightness: Brightness.light,
-            error: Color(0xFFD32F2F), // Stonowany, ale wyraźny odcień czerwieni
-            onPrimary: Colors.white, // Dobrze widoczny na ciemnym tle
-            onSecondary: Colors
-                .white, // Jasny tekst na ciemniejszych elementach pomocniczych
-            onSurface: Colors
-                .black87, // Lekko przyciemniony czarny dla dobrej czytelności
-            onError:
-                Colors.white, // Biały dla dobrej widoczności na czerwonym tle
-            secondary:
-                Color(0xFF6D4C41), // Ciemniejszy brąz jako kolor akcentowy
+          primary: Color(0xFF795548), // Ciemny brąz, elegancki i neutralny
+          surface: Color(0xFFFAF3E0), // Jasny beżowy, delikatne tło
+          brightness: Brightness.light,
+          error: Color(0xFFD32F2F), // Stonowany, ale wyraźny odcień czerwieni
+          onPrimary: Colors.white, // Dobrze widoczny na ciemnym tle
+          onSecondary: Colors
+              .white, // Jasny tekst na ciemniejszych elementach pomocniczych
+          onSurface: Colors
+              .black87, // Lekko przyciemniony czarny dla dobrej czytelności
+          onError:
+              Colors.white, // Biały dla dobrej widoczności na czerwonym tle
+          secondary: Color(0xFF6D4C41), // Ciemniejszy brąz jako kolor akcentowy
         ),
         useMaterial3: true,
       ),
@@ -37,3 +36,4 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ciekawy case do rozpatrzenia: GO:0009052

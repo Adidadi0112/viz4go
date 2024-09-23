@@ -20,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<ValueNotifier<Offset>> _positions = [];
-  late final Map<String, int> _nodeIndex;
+  Map<String, int> _nodeIndex = {};
   List<dynamic> _items = [];
   final List<String> _activeFilters = ['is_a', 'part_of'];
   List<Node> _nodesData = [];
