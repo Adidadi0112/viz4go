@@ -14,7 +14,7 @@ class MenuWidget extends StatefulWidget {
     required this.onLoadData,
     required this.goIdController,
     required this.activeFilters,
-    required this.onLayoutModeChanged, 
+    required this.onLayoutModeChanged,
     required this.onConnectionsUpdated,
   });
 
@@ -29,7 +29,7 @@ class _MenuWidgetState extends State<MenuWidget> {
     List<String> goIds = widget.goIdController.text.split(' ');
     goIds = goIds.map((e) => e.replaceAll('\n', '')).toList();
     final connections = await ApiService().fetchGoConnections(goIds);
-    widget.onConnectionsUpdated(connections); 
+    widget.onConnectionsUpdated(connections);
   }
 
   @override
@@ -40,7 +40,7 @@ class _MenuWidgetState extends State<MenuWidget> {
         padding: const EdgeInsets.all(8),
         child: Container(
           padding: const EdgeInsets.all(8),
-          width: 300,
+          width: 260,
           decoration: BoxDecoration(
             color: Colors.blueGrey[700],
             borderRadius: BorderRadius.circular(10),
@@ -89,8 +89,7 @@ class _MenuWidgetState extends State<MenuWidget> {
               ),
               const SizedBox(height: 8),
               TextButton.icon(
-                onPressed: () {
-                },
+                onPressed: () {},
                 icon: const Icon(
                   Icons.file_present_outlined,
                   color: Color.fromARGB(255, 237, 224, 219),
@@ -106,6 +105,7 @@ class _MenuWidgetState extends State<MenuWidget> {
               _buildRelationFilter('part_of'),
               _buildRelationFilter('negatively_regulates'),
               _buildRelationFilter('regulates'),
+              _buildRelationFilter('has_part'),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

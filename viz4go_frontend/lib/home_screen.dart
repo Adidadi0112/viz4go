@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:viz4go_frontend/models/Node.dart';
+import 'package:viz4go_frontend/models/node.dart';
 import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/menu.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
@@ -96,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  TransformationController _transformationController =
+  final TransformationController _transformationController =
       TransformationController();
 
   @override
@@ -135,8 +135,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Stack(
                           children: [
                             CustomPaint(
-                              painter: LinePainter(_positions, _items,
-                                  _nodeIndex, _activeFilters),
+                              painter: LinePainter(
+                                  _positions,
+                                  _items,
+                                  _nodeIndex,
+                                  _activeFilters,
+                                  _currentLayoutMode),
                               child: Container(),
                             ),
                             for (var entry in _nodeIndex.entries)

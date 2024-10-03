@@ -35,5 +35,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-// ciekawy case do rozpatrzenia: GO:0009052
+// trzy klasy naraz GO:0030126 GO:0009052

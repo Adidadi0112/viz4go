@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/Node.dart';
+import '../models/node.dart';
 
 class NodeWidget extends StatelessWidget {
   final MapEntry<String, int> entry;
