@@ -1,0 +1,29 @@
+Protein,GO_term/EC_number,Score,GO_term/EC_number name
+MIP_00004875.pdb,GO:0009987,0.59379,cellular process
+MIP_00004875.pdb,GO:0065007,0.56381,biological regulation
+MIP_00004875.pdb,GO:0050789,0.50825,regulation of biological process
+MIP_00004875.pdb,GO:0050896,0.42192,response to stimulus
+MIP_00004875.pdb,GO:0050794,0.28157,regulation of cellular process
+MIP_00004875.pdb,GO:0048856,0.26766,anatomical structure development
+MIP_00004875.pdb,GO:0032502,0.2582,developmental process
+MIP_00004875.pdb,GO:0048519,0.21883,negative regulation of biological process
+MIP_00004875.pdb,GO:0006950,0.21423,response to stress
+MIP_00004875.pdb,GO:0071704,0.19514,organic substance metabolic process
+MIP_00004875.pdb,GO:0008152,0.19029,metabolic process
+MIP_00004875.pdb,GO:0071840,0.18173,cellular component organization or biogenesis
+MIP_00004875.pdb,GO:0044238,0.17492,primary metabolic process
+MIP_00004875.pdb,GO:0006807,0.17349,nitrogen compound metabolic process
+MIP_00004875.pdb,GO:0019538,0.1731,protein metabolic process
+MIP_00004875.pdb,GO:0043170,0.1691,macromolecule metabolic process
+MIP_00004875.pdb,GO:0016043,0.16671,cellular component organization
+MIP_00004875.pdb,GO:0032501,0.16281,multicellular organismal process
+MIP_00004875.pdb,GO:0051716,0.15299,cellular response to stimulus
+MIP_00004875.pdb,GO:1901564,0.14953,organonitrogen compound metabolic process
+MIP_00004875.pdb,GO:0019222,0.14813,regulation of metabolic process
+MIP_00004875.pdb,GO:0060255,0.12933,regulation of macromolecule metabolic process
+MIP_00004875.pdb,GO:0007275,0.12503,multicellular organism development
+MIP_00004875.pdb,GO:0051171,0.117,regulation of nitrogen compound metabolic process
+MIP_00004875.pdb,GO:0051246,0.11089,regulation of protein metabolic process
+MIP_00004875.pdb,GO:0080090,0.1107,regulation of primary metabolic process
+MIP_00004875.pdb,GO:0007154,0.11022,cell communication
+MIP_00004875.pdb,GO:0006996,0.10755,organelle organization

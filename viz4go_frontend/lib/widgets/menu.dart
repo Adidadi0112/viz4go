@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:viz4go_frontend/home_screen.dart';
 import 'package:viz4go_frontend/services/api_service.dart';
@@ -8,14 +10,16 @@ class MenuWidget extends StatefulWidget {
   final List<String> activeFilters;
   final void Function(LayoutMode) onLayoutModeChanged;
   final void Function(List<dynamic>) onConnectionsUpdated;
+  final void Function(Map<String, dynamic>?) onCsvConnectionsUpdated;
 
-  MenuWidget({
+  const MenuWidget({
     super.key,
     required this.onLoadData,
     required this.goIdController,
     required this.activeFilters,
     required this.onLayoutModeChanged,
     required this.onConnectionsUpdated,
+    required this.onCsvConnectionsUpdated,
   });
 
   @override
@@ -24,6 +28,143 @@ class MenuWidget extends StatefulWidget {
 
 class _MenuWidgetState extends State<MenuWidget> {
   LayoutMode _selectedLayoutMode = LayoutMode.random;
+
+  Map<String, dynamic>? connectionsCsv;
+
+  String? molecularFunctionFileName;
+  String? biologicalProcessFileName;
+  String? cellularComponentFileName;
+
+  PlatformFile? molecularFunctionFile;
+  PlatformFile? biologicalProcessFile;
+  PlatformFile? cellularComponentFile;
+
+  // Funkcja do wybrania pliku
+  Future<void> pickFile(String type) async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'], // Ograniczamy do plików CSV
+    );
+
+    if (result != null) {
+      PlatformFile file = result.files.single;
+
+      setState(() {
+        // Aktualizacja zmiennych na podstawie typu pliku
+        switch (type) {
+          case 'molecular_function':
+            molecularFunctionFile = file;
+            molecularFunctionFileName = file.name;
+            break;
+          case 'biological_process':
+            biologicalProcessFile = file;
+            biologicalProcessFileName = file.name;
+            break;
+          case 'cellular_component':
+            cellularComponentFile = file;
+            cellularComponentFileName = file.name;
+            break;
+        }
+      });
+    }
+  }
+
+  Future<void> showAttachFileDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Attach Files'),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Molecular Function
+                    ListTile(
+                      title: const Text('Molecular Function'),
+                      subtitle:
+                          Text(molecularFunctionFileName ?? 'No file selected'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.attach_file),
+                        onPressed: () async {
+                          await pickFile('molecular_function');
+                          // Aktualizacja stanu dialogu
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                    const Divider(),
+                    // Biological Process
+                    ListTile(
+                      title: const Text('Biological Process'),
+                      subtitle:
+                          Text(biologicalProcessFileName ?? 'No file selected'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.attach_file),
+                        onPressed: () async {
+                          await pickFile('biological_process');
+                          // Aktualizacja stanu dialogu
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                    const Divider(),
+                    // Cellular Component
+                    ListTile(
+                      title: const Text('Cellular Component'),
+                      subtitle:
+                          Text(cellularComponentFileName ?? 'No file selected'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.attach_file),
+                        onPressed: () async {
+                          await pickFile('cellular_component');
+                          // Aktualizacja stanu dialogu
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Attach'),
+                  onPressed: () async {
+                    // Wywołanie requestu i przypisanie odpowiedzi do zmiennej
+                    connectionsCsv =
+                        await ApiService().sendNodeConnectionsRequest(
+                      molecularFunctionFile!,
+                      biologicalProcessFile!,
+                      cellularComponentFile!,
+                      0.4,
+                    );
+
+                    // Sprawdzenie, czy odpowiedź nie jest nullem
+                    if (connectionsCsv != null) {
+                      // Zrobienie czegoś z odpowiedzią, np. przekazanie do innej funkcji lub użycie w widoku
+                      print('Received response: $connectionsCsv');
+                    } else {
+                      print('Failed to fetch connections.');
+                    }
+                    widget.onCsvConnectionsUpdated(connectionsCsv);
+                    // Zamknięcie dialogu
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _loadGraph() async {
     List<String> goIds = widget.goIdController.text.split(' ');
@@ -89,7 +230,7 @@ class _MenuWidgetState extends State<MenuWidget> {
               ),
               const SizedBox(height: 8),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () => showAttachFileDialog(context),
                 icon: const Icon(
                   Icons.file_present_outlined,
                   color: Color.fromARGB(255, 237, 224, 219),
@@ -168,31 +309,25 @@ class _MenuWidgetState extends State<MenuWidget> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: CheckboxListTile(
-        side: const BorderSide(
-          color: Color.fromARGB(255, 237, 224, 219),
-          width: 2,
-        ),
         title: Text(
           relation,
           style: const TextStyle(
             color: Color.fromARGB(255, 237, 224, 219),
           ),
         ),
+        controlAffinity: ListTileControlAffinity.leading,
+        activeColor: const Color.fromARGB(255, 237, 224, 219),
+        checkColor: Colors.blueGrey[700],
         value: widget.activeFilters.contains(relation),
         onChanged: (bool? value) {
-          setState(
-            () {
-              if (value == true) {
-                widget.activeFilters.add(relation);
-              } else {
-                widget.activeFilters.remove(relation);
-              }
-            },
-          );
+          setState(() {
+            if (value != null && value) {
+              widget.activeFilters.add(relation);
+            } else {
+              widget.activeFilters.remove(relation);
+            }
+          });
         },
-        activeColor: Colors.blueGrey[700],
-        checkColor: Colors.white,
-        controlAffinity: ListTileControlAffinity.leading,
       ),
     );
   }

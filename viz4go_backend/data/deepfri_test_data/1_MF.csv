@@ -1,0 +1,4 @@
+Protein,GO_term/EC_number,Score,GO_term/EC_number name
+MIP_00004875.pdb,GO:0003677,0.47095,DNA binding
+MIP_00004875.pdb,GO:0046983,0.31351,protein dimerization activity
+MIP_00004875.pdb,GO:0046982,0.10243,protein heterodimerization activity

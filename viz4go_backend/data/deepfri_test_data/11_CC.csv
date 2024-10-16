@@ -1,0 +1,12 @@
+Protein,GO_term/EC_number,Score,GO_term/EC_number name
+MIP_00004875.pdb,GO:0110165,0.99993,cellular anatomical entity
+MIP_00004875.pdb,GO:0043229,0.98234,intracellular organelle
+MIP_00004875.pdb,GO:0043226,0.97276,organelle
+MIP_00004875.pdb,GO:0005622,0.96873,intracellular anatomical structure
+MIP_00004875.pdb,GO:0043232,0.71859,intracellular non-membrane-bounded organelle
+MIP_00004875.pdb,GO:0043228,0.71783,non-membrane-bounded organelle
+MIP_00004875.pdb,GO:0031974,0.63877,membrane-enclosed lumen
+MIP_00004875.pdb,GO:0043233,0.63857,organelle lumen
+MIP_00004875.pdb,GO:0070013,0.63832,intracellular organelle lumen
+MIP_00004875.pdb,GO:0043227,0.48569,membrane-bounded organelle
+MIP_00004875.pdb,GO:0005694,0.36133,chromosome

@@ -78,5 +78,81 @@ def get_node_connections():
     conn.close()
     
     connections = get_connections(nodes_df, start_node)
-    
     return jsonify(connections)
+
+@go_bp.route('/connections_csv', methods=['POST'])
+def get_node_connections_csv():
+    # Pobranie wartości score z requestu, z domyślną wartością 0.4
+    score_threshold = float(request.form.get('score', 0.4))
+
+    # Sprawdzenie, czy przesłano jakiekolwiek pliki CSV
+    if 'file1' not in request.files and 'file2' not in request.files and 'file3' not in request.files:
+        return jsonify({'error': 'No CSV files were uploaded'}), 400
+
+    # Odczytanie wszystkich przesłanych plików CSV (może być od 1 do 3)
+    uploaded_files = []
+    for file_key in ['file1', 'file2', 'file3']:
+        file = request.files.get(file_key)
+        if file:
+            uploaded_files.append(file)
+
+    # Przekazanie informacji zwrotnej, ile plików wczytano
+    print(f"Number of uploaded CSV files: {len(uploaded_files)}")
+
+    # Wczytanie zawartości przesłanych plików CSV do listy i połączenie ich w jeden DataFrame
+    dfs = []
+    for idx, file in enumerate(uploaded_files):
+        try:
+            df = pd.read_csv(file)
+            dfs.append(df)
+        except Exception as e:
+            return jsonify({'error': f'Failed to read file {file.filename}: {str(e)}'}), 500
+
+    # Połączenie wszystkich DataFrame'ów w jeden
+    combined_df = pd.concat(dfs, ignore_index=True)
+
+    # Sprawdzenie struktury połączonego DataFrame
+    print("Combined DataFrame:")
+    print(combined_df)
+
+    # Usunięcie powielonych kolumn, jeśli występują (na podstawie nazw)
+    combined_df = combined_df.loc[:, ~combined_df.columns.duplicated()]
+
+    # Filtrowanie DataFrame na podstawie progu `score`
+    filtered_df = combined_df[combined_df['Score'] >= score_threshold]
+
+    print("Combined DataFrame:")
+    print(filtered_df)
+
+    # Tworzenie mapy białek do powiązanych z nimi GO termów
+    protein_to_go_terms = {}
+    for _, row in filtered_df.iterrows():
+        protein = row['Protein']
+        go_term = row['GO_term/EC_number']
+
+        # Dodanie GO termu do listy, jeżeli białko istnieje w mapie
+        if protein in protein_to_go_terms:
+            protein_to_go_terms[protein].append(go_term)
+        else:
+            # Inicjalizacja listy GO termów dla nowego białka
+            protein_to_go_terms[protein] = [go_term]
+
+    # Wczytanie go_nodes.csv jako DataFrame, aby przekazać go do funkcji get_connections
+    nodes_df = pd.read_csv('go_nodes.csv')
+
+    # Zastosowanie funkcji get_connections do każdego białka i jego listy GO termów
+    for protein, go_terms in protein_to_go_terms.items():
+        print(f"\nProcessing protein: {protein} with GO terms: {go_terms}")
+
+        # Wywołanie funkcji get_connections na liście GO termów
+        connections = get_connections(nodes_df, go_terms)
+
+        # Nadpisanie wartości białka w mapie `protein_to_go_terms` wynikami `get_connections`
+        protein_to_go_terms[protein] = connections
+
+    # Wypisanie zmodyfikowanej mapy
+    print(f"\nFinal protein-to-connections map: {protein_to_go_terms}")
+
+    # Zwrot mapy jako odpowiedź API
+    return jsonify(protein_to_go_terms)
+

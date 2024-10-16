@@ -1,0 +1,6 @@
+Protein,GO_term/EC_number,Score,GO_term/EC_number name
+MIP_00004875.pdb,GO:0043412,0.13923,macromolecule modification
+MIP_00004875.pdb,GO:0006464,0.12674,cellular protein modification process
+MIP_00004875.pdb,GO:0036211,0.12636,protein modification process
+MIP_00004875.pdb,GO:0051716,0.12108,cellular response to stimulus
+MIP_00004875.pdb,GO:0006950,0.10094,response to stress

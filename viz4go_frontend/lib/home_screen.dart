@@ -26,11 +26,24 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Node> _nodesData = [];
   LayoutMode _currentLayoutMode = LayoutMode.random;
   final TextEditingController _goIdController = TextEditingController();
+  String _protein = '';
   bool isLoading = false;
+  bool isCsv = false;
 
   void _generateGraphFromTextField(List<dynamic> newItems) {
     setState(() {
+      print(newItems);
       _items = newItems;
+      isCsv = false;
+    });
+    loadGraph(_items);
+  }
+
+  void _generateGraphFromCsv(Map<String, dynamic>? connectionsCsv) {
+    setState(() {
+      isCsv = true;
+      _items = connectionsCsv!.values.first;
+      _protein = connectionsCsv.keys.first;
     });
     loadGraph(_items);
   }
@@ -176,7 +189,25 @@ class _HomeScreenState extends State<HomeScreen> {
             activeFilters: _activeFilters,
             onLayoutModeChanged: _updateLayoutMode,
             onConnectionsUpdated: _generateGraphFromTextField,
+            onCsvConnectionsUpdated: _generateGraphFromCsv,
           ),
+          isCsv
+              ? Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Container(
+                    margin: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey[400],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(_protein),
+                    ),
+                  ))
+              : Align(),
         ],
       ),
     );

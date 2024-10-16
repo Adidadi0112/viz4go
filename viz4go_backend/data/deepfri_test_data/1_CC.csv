@@ -1,0 +1,3 @@
+Protein,GO_term/EC_number,Score,GO_term/EC_number name
+MIP_00004875.pdb,GO:0043232,0.11943,intracellular non-membrane-bounded organelle
+MIP_00004875.pdb,GO:0043228,0.11022,non-membrane-bounded organelle

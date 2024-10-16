@@ -1,0 +1,5 @@
+Protein,GO_term/EC_number,Score,GO_term/EC_number name
+MIP_00004875.pdb,GO:0003824,0.40186,catalytic activity
+MIP_00004875.pdb,GO:0005488,0.37246,binding
+MIP_00004875.pdb,GO:0005515,0.36966,protein binding
+MIP_00004875.pdb,GO:0016740,0.14095,transferase activity
