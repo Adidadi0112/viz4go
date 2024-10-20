@@ -29,10 +29,12 @@ class _HomeScreenState extends State<HomeScreen> {
   String _protein = '';
   bool isLoading = false;
   bool isCsv = false;
+  List<String> _hoveredNodes =
+      []; // Nowa zmienna do śledzenia najechanego węzła
 
   void _generateGraphFromTextField(List<dynamic> newItems) {
+    // TO DO umoliwić wrzucenie tylko jednego pliku .csv, albbo dwóch
     setState(() {
-      print(newItems);
       _items = newItems;
       isCsv = false;
     });
@@ -82,6 +84,21 @@ class _HomeScreenState extends State<HomeScreen> {
         return PositionGenerator.generateTreePositions(
             _nodeIndex, _items, area);
     }
+  }
+
+  void _updateHoveredNodes(String hoveredNode) {
+    final List<String> relatedNodes = [hoveredNode];
+
+    // Znajdź wszystkie powiązane węzły (dzieci i rodzice)
+    for (var connection in _items) {
+      if (connection[0] == hoveredNode || connection[1] == hoveredNode) {
+        relatedNodes.add(connection[0]);
+        relatedNodes.add(connection[1]);
+      }
+    }
+    setState(() {
+      _hoveredNodes = relatedNodes.toSet().toList(); // Usuń duplikaty
+    });
   }
 
   Future<void> loadGraph(List<dynamic> list) async {
@@ -165,10 +182,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return Positioned(
                                     left: position.dx,
                                     top: position.dy,
-                                    child: NodeWidget(
-                                      entry: entry,
-                                      positions: _positions,
-                                      nodeData: node,
+                                    child: MouseRegion(
+                                      onEnter: (event) {
+                                        setState(() {
+                                          _updateHoveredNodes(entry.key);
+                                          ;
+                                        });
+                                      },
+                                      onExit: (_) {
+                                        setState(() {
+                                          _hoveredNodes = [];
+                                        });
+                                      },
+                                      child: NodeWidget(
+                                        entry: entry,
+                                        positions: _positions,
+                                        nodeData: node,
+                                        isVisible: _hoveredNodes.isEmpty ||
+                                            (_hoveredNodes.contains(entry.key)),
+                                      ),
                                     ),
                                   );
                                 },
@@ -207,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text(_protein),
                     ),
                   ))
-              : Align(),
+              : const Align(),
         ],
       ),
     );

@@ -5,12 +5,14 @@ class NodeWidget extends StatelessWidget {
   final MapEntry<String, int> entry;
   final List<ValueNotifier<Offset>> positions;
   final Node nodeData;
+  bool isVisible = true;
 
-  const NodeWidget(
+  NodeWidget(
       {super.key,
       required this.entry,
       required this.positions,
-      required this.nodeData});
+      required this.nodeData,
+      this.isVisible = true});
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +22,17 @@ class NodeWidget extends StatelessWidget {
     Color getNodeColor() {
       switch (nodeData.namespace) {
         case 'cellular_component':
-          return Colors.blueAccent.withOpacity(0.8);
+          return isVisible
+              ? Colors.blueAccent.withOpacity(0.8)
+              : Colors.blueAccent.withOpacity(0.2);
         case 'biological_process':
-          return Colors.greenAccent.withOpacity(0.8);
+          return isVisible
+              ? Colors.greenAccent.withOpacity(0.8)
+              : Colors.greenAccent.withOpacity(0.2);
         case 'molecular_function':
-          return Colors.orangeAccent.withOpacity(0.8);
+          return isVisible
+              ? Colors.orangeAccent.withOpacity(0.8)
+              : Colors.orangeAccent.withOpacity(0.2);
         default:
           return Colors.grey.withOpacity(0.8); // domyślny kolor
       }

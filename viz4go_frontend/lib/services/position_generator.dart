@@ -6,7 +6,6 @@ class PositionGenerator {
       Map<String, int> nodeIndex, List<dynamic> items, Rect area) {
     // Wygenerowanie poziomów wierzchołków przy użyciu metody groupGOLevels
     final List<dynamic> levels = groupGOLevels(items);
-    print(levels);
 
     List<ValueNotifier<Offset>> positions = List.generate(
         nodeIndex.length, (_) => ValueNotifier<Offset>(Offset.zero));
@@ -16,7 +15,7 @@ class PositionGenerator {
 
     // Ustawienie pozycji wierzchołków na odpowiednich poziomach
     double y = area.top + 2000;
-    for (int i = levels.length - 1; i >= 0; i--) {
+    for (int i = 0; i <= levels.length - 1; i++) {
       final level = levels[i];
       final double horizontalSpacing =
           (area.width - level.length * nodeWidth) / (level.length + 1);
@@ -103,6 +102,7 @@ class PositionGenerator {
 
   // Metoda pomocnicza do grupowania wierzchołków na poziomy
   static List<List<String>> groupGOLevels(List<dynamic> data) {
+    List<String> predefinedRoots = ['GO:0008150', 'GO:0003674', 'GO:0005575'];
     final Map<String, List<String>> tree = {};
 
     // Budowanie drzewa
@@ -116,17 +116,9 @@ class PositionGenerator {
       tree[parent]!.add(child);
     }
 
-    // Znalezienie korzeni drzewa
-    Set<String> allChildren = {};
-    for (var children in tree.values) {
-      allChildren.addAll(children);
-    }
-    print(tree);
-    print(allChildren);
-
+    // Sprawdzanie, które z zdefiniowanych korzeni są obecne jako dzieci w drzewie
     List<String> roots =
-        tree.keys.where((term) => !allChildren.contains(term)).toList();
-    print(roots);
+        predefinedRoots.where((root) => _isChildInTree(root, tree)).toList();
 
     // Grupowanie wierzchołków w poziomy
     List<List<String>> levels = [];
@@ -137,7 +129,17 @@ class PositionGenerator {
     return levels;
   }
 
-  // Rekurencyjna metoda pomocnicza do dodawania wierzchołków na odpowiednie poziomy
+// Metoda pomocnicza do sprawdzania, czy dany term występuje jako dziecko w drzewie
+  static bool _isChildInTree(String term, Map<String, List<String>> tree) {
+    for (var children in tree.values) {
+      if (children.contains(term)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+// Rekurencyjna metoda pomocnicza do dodawania wierzchołków na odpowiednie poziomy
   static void _addToLevels(Map<String, List<String>> tree, String term,
       List<List<String>> levels, int depth) {
     while (levels.length <= depth) {
@@ -148,9 +150,10 @@ class PositionGenerator {
       levels[depth].add(term);
     }
 
-    if (tree.containsKey(term)) {
-      for (var child in tree[term]!) {
-        _addToLevels(tree, child, levels, depth + 1);
+    // Teraz sprawdzamy, czy dany węzeł (term) jest rodzicem dla innych
+    for (var entry in tree.entries) {
+      if (entry.value.contains(term)) {
+        _addToLevels(tree, entry.key, levels, depth + 1);
       }
     }
 
