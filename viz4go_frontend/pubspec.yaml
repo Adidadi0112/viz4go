@@ -15,6 +15,7 @@ dependencies:
   http: ^1.2.2
   file_picker: ^8.1.2
   http_parser: ^4.0.2
+  flutter_3d_controller: ^2.0.2
 
 dev_dependencies:
   flutter_test:
@@ -28,6 +29,7 @@ flutter:
   assets:
     - assets/connections.json
     - assets/go_terms.json
+    - assets/example.gltf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
