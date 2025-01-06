@@ -33,9 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
   List<String> _hoveredNodes =
       []; // Nowa zmienna do śledzenia najechanego węzła
   Flutter3DController controller = Flutter3DController();
+  int _proteinIndex = 1;
+  Map<String, dynamic>? _proteinAndConnections;
 
   void _generateGraphFromTextField(List<dynamic> newItems) {
-    // TO DO umoliwić wrzucenie tylko jednego pliku .csv, albbo dwóch
+    // TO DO umoliwić wrzucenie tylko jednego pliku .csv, albo dwóch
     setState(() {
       _items = newItems;
       isCsv = false;
@@ -44,12 +46,48 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _generateGraphFromCsv(Map<String, dynamic>? connectionsCsv) {
+    // Działa na razie tylko dla pierwszego elementu z mapy connectionsCsv
     setState(() {
       isCsv = true;
-      _items = connectionsCsv!.values.first;
-      _protein = connectionsCsv.keys.first;
+      _proteinAndConnections = connectionsCsv;
+      _items = connectionsCsv!.values.elementAt(_proteinIndex);
+      _protein = connectionsCsv.keys.elementAt(_proteinIndex);
     });
     loadGraph(_items);
+  }
+
+  void _updateProteinData() {
+    // jak mamy orientacje drzewa i zmienaimy białko, to pojawia sie random ze strzałkami i trzeba to przeklikać
+    if (_proteinAndConnections != null &&
+        _proteinIndex >= 0 &&
+        _proteinIndex < _proteinAndConnections!.keys.length) {
+      setState(() {
+        _protein = _proteinAndConnections!.keys.elementAt(_proteinIndex);
+        _items = _proteinAndConnections!.values.elementAt(_proteinIndex);
+        loadGraph(_items);
+      });
+    } else {
+      print('Brak danych lub index poza zakresem!');
+    }
+  }
+
+  void _decrementProteinIndex() {
+    if (_proteinIndex > 0) {
+      setState(() {
+        _proteinIndex--;
+        _updateProteinData();
+      });
+    }
+  }
+
+  void _incrementProteinIndex() {
+    if (_proteinAndConnections != null &&
+        _proteinIndex < _proteinAndConnections!.keys.length - 1) {
+      setState(() {
+        _proteinIndex++;
+        _updateProteinData();
+      });
+    }
   }
 
   Future<void> readJson() async {
@@ -188,7 +226,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onEnter: (event) {
                                         setState(() {
                                           _updateHoveredNodes(entry.key);
-                                          ;
                                         });
                                       },
                                       onExit: (_) {
@@ -225,60 +262,79 @@ class _HomeScreenState extends State<HomeScreen> {
             onConnectionsUpdated: _generateGraphFromTextField,
             onCsvConnectionsUpdated: _generateGraphFromCsv,
           ),
-          isCsv
-              ? Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Container(
-                    margin: const EdgeInsets.all(8),
-                    padding: const EdgeInsets.all(8),
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey[700],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Column(
+          if (isCsv && _proteinAndConnections != null)
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(
+                  color: Colors.blueGrey[700],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(_protein,
-                              style: const TextStyle(color: Colors.white)),
-                          Flexible(
-                              flex: 1,
-                              child: Flutter3DViewer(
-                                //If you pass 'true' the flutter_3d_controller will add gesture interceptor layer
-                                //to prevent gesture recognizers from malfunctioning on iOS and some Android devices.
-                                //the default value is true
-                                activeGestureInterceptor: true,
-                                //If you don't pass progressBarColor, the color of defaultLoadingProgressBar will be grey.
-                                //You can set your custom color or use [Colors.transparent] for hiding loadingProgressBar.
-                                progressBarColor: Colors.orange,
-                                //You can disable viewer touch response by setting 'enableTouch' to 'false'
-                                enableTouch: true,
-                                //This callBack will return the loading progress value between 0 and 1.0
-                                onProgress: (double progressValue) {
-                                  debugPrint(
-                                      'model loading progress : $progressValue');
-                                },
-                                //This callBack will call after model loaded successfully and will return model address
-                                onLoad: (String modelAddress) {
-                                  debugPrint('model loaded : $modelAddress');
-                                },
-                                //this callBack will call when model failed to load and will return failure error
-                                onError: (String error) {
-                                  debugPrint('model failed to load : $error');
-                                },
-                                //You can have full control of 3d model animations, textures and camera
-                                controller: controller,
-                                src:
-                                    'assets/example.gltf', //3D model with different animations
-                                //src 'assets/sheen_chair.glb', //3D model with different textures
-                                //'https://modelviewer.dev/shared-assets/models/Astronaut.glb', // 3D model from URL
-                              )),
+                          IconButton(
+                            onPressed: _decrementProteinIndex,
+                            icon: const Icon(Icons.chevron_left,
+                                color: Colors.white),
+                          ),
+                          Text(
+                            _protein,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          IconButton(
+                            onPressed: _incrementProteinIndex,
+                            icon: const Icon(
+                              Icons.chevron_right,
+                              color: Colors.white,
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                  ))
-              : const Align(),
+                      Flexible(
+                          flex: 1,
+                          child: Flutter3DViewer(
+                            //If you pass 'true' the flutter_3d_controller will add gesture interceptor layer
+                            //to prevent gesture recognizers from malfunctioning on iOS and some Android devices.
+                            //the default value is true
+                            activeGestureInterceptor: true,
+                            //If you don't pass progressBarColor, the color of defaultLoadingProgressBar will be grey.
+                            //You can set your custom color or use [Colors.transparent] for hiding loadingProgressBar.
+                            progressBarColor: Colors.orange,
+                            //You can disable viewer touch response by setting 'enableTouch' to 'false'
+                            enableTouch: true,
+                            //This callBack will return the loading progress value between 0 and 1.0
+                            onProgress: (double progressValue) {
+                              debugPrint(
+                                  'model loading progress : $progressValue');
+                            },
+                            //This callBack will call after model loaded successfully and will return model address
+                            onLoad: (String modelAddress) {
+                              debugPrint('model loaded : $modelAddress');
+                            },
+                            //this callBack will call when model failed to load and will return failure error
+                            onError: (String error) {
+                              debugPrint('model failed to load : $error');
+                            },
+                            //You can have full control of 3d model animations, textures and camera
+                            controller: controller,
+                            src:
+                                'assets/example.gltf', //3D model with different animations
+                            //src 'assets/sheen_chair.glb', //3D model with different textures
+                            //'https://modelviewer.dev/shared-assets/models/Astronaut.glb', // 3D model from URL
+                          )),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

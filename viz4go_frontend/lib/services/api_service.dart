@@ -64,30 +64,24 @@ class ApiService {
     request.fields['score'] = score.toString();
 
     // Dodanie plików CSV, jeśli istnieją
-    if (file1 != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file1',
-        file1.bytes!,
-        filename: file1.name,
-        contentType: MediaType('text', 'csv'),
-      ));
-    }
-    if (file2 != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file2',
-        file2.bytes!,
-        filename: file2.name,
-        contentType: MediaType('text', 'csv'),
-      ));
-    }
-    if (file3 != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file3',
-        file3.bytes!,
-        filename: file3.name,
-        contentType: MediaType('text', 'csv'),
-      ));
-    }
+    request.files.add(http.MultipartFile.fromBytes(
+      'file1',
+      file1.bytes!,
+      filename: file1.name,
+      contentType: MediaType('text', 'csv'),
+    ));
+    request.files.add(http.MultipartFile.fromBytes(
+      'file2',
+      file2.bytes!,
+      filename: file2.name,
+      contentType: MediaType('text', 'csv'),
+    ));
+    request.files.add(http.MultipartFile.fromBytes(
+      'file3',
+      file3.bytes!,
+      filename: file3.name,
+      contentType: MediaType('text', 'csv'),
+    ));
 
     // Wysłanie żądania
     try {
@@ -99,7 +93,6 @@ class ApiService {
       if (response.statusCode == 200) {
         // Parsowanie odpowiedzi do formatu JSON
         var data = jsonDecode(response.body) as Map<String, dynamic>;
-        print('Success: $data');
         return data;
       } else {
         print('Error: ${response.statusCode}');
