@@ -148,7 +148,6 @@ class _MenuWidgetState extends State<MenuWidget> {
                     // Sprawdzenie, czy odpowiedź nie jest nullem
                     if (connectionsCsv != null) {
                       // Zrobienie czegoś z odpowiedzią, np. przekazanie do innej funkcji lub użycie w widoku
-                      print('Received response: $connectionsCsv');
                     } else {
                       print('Failed to fetch connections.');
                     }

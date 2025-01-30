@@ -3,23 +3,25 @@ import 'package:flutter/material.dart';
 
 class PositionGenerator {
   static List<ValueNotifier<Offset>> generateTreePositions(
-      Map<String, int> nodeIndex, List<dynamic> items, Rect area) {
+      Map<String, int> nodeIndex, List<dynamic> items, Rect area,
+      {bool isSmall = false}) {
     // Wygenerowanie poziomów wierzchołków przy użyciu metody groupGOLevels
     final List<dynamic> levels = groupGOLevels(items);
 
     List<ValueNotifier<Offset>> positions = List.generate(
         nodeIndex.length, (_) => ValueNotifier<Offset>(Offset.zero));
-    const double nodeWidth = 1000.0;
-    const double nodeHeight = 80.0;
-    const double verticalSpacing = 60.0;
+    final double nodeWidth = isSmall ? 40 : 1000.0;
+    final double nodeHeight = isSmall ? 10 : 80.0;
+    final double verticalSpacing = isSmall ? 10 : 60.0;
+    final int fix = isSmall ? 0 : 2000;
 
     // Ustawienie pozycji wierzchołków na odpowiednich poziomach
-    double y = area.top + 2000;
+    double y = area.top + fix;
     for (int i = 0; i <= levels.length - 1; i++) {
       final level = levels[i];
       final double horizontalSpacing =
           (area.width - level.length * nodeWidth) / (level.length + 1);
-      double x = area.left + horizontalSpacing + 2000;
+      double x = area.left + horizontalSpacing + fix;
       for (int j = 0; j < level.length; j++) {
         final term = level[j];
         final index = nodeIndex[term]!;

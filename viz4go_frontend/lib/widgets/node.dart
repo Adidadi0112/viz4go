@@ -6,17 +6,21 @@ class NodeWidget extends StatelessWidget {
   final List<ValueNotifier<Offset>> positions;
   final Node nodeData;
   bool isVisible = true;
+  bool isSmall = false;
 
   NodeWidget(
       {super.key,
       required this.entry,
       required this.positions,
       required this.nodeData,
-      this.isVisible = true});
+      this.isVisible = true,
+      this.isSmall = false});
 
   @override
   Widget build(BuildContext context) {
-    const width = 135.0; // Zwiększenie szerokości dla lepszej przejrzystości
+    final width = !isSmall
+        ? 135.0
+        : 45.0; // Zwiększenie szerokości dla lepszej przejrzystości
 
     // Ustawienie koloru w zależności od namespace
     Color getNodeColor() {
@@ -42,7 +46,7 @@ class NodeWidget extends StatelessWidget {
       feedback: Container(),
       childWhenDragging: Container(
         width: width,
-        padding: const EdgeInsets.all(4),
+        padding: EdgeInsets.all(isSmall ? 1 : 4),
         decoration: BoxDecoration(
           color: getNodeColor().withOpacity(0.5), // Kolor podczas przeciągania
           borderRadius: BorderRadius.circular(12),
@@ -58,13 +62,17 @@ class NodeWidget extends StatelessWidget {
           children: [
             Text(
               entry.key,
-              style: const TextStyle(fontSize: 12, color: Colors.black),
+              style:
+                  TextStyle(fontSize: !isSmall ? 12 : 5, color: Colors.black),
             ),
-            Text(
-              nodeData.name,
-              style: const TextStyle(fontSize: 10, color: Colors.black54),
-              textAlign: TextAlign.center,
-            ),
+            !isSmall
+                ? Text(
+                    nodeData.name,
+                    style: TextStyle(
+                        fontSize: !isSmall ? 12 : 5, color: Colors.black54),
+                    textAlign: TextAlign.center,
+                  )
+                : Container(),
           ],
         ),
       ),
@@ -73,7 +81,7 @@ class NodeWidget extends StatelessWidget {
       },
       child: Container(
         width: width,
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.all(isSmall ? 1 : 4),
         decoration: BoxDecoration(
           color: getNodeColor(), // Kolor zależny od namespace
           borderRadius: BorderRadius.circular(12),
@@ -87,19 +95,21 @@ class NodeWidget extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const SizedBox(height: 4),
             Text(
               entry.key,
-              style: const TextStyle(
-                  fontSize: 12,
+              style: TextStyle(
+                  fontSize: !isSmall ? 12 : 5,
                   color: Colors.white,
                   fontWeight: FontWeight.bold),
             ),
-            Text(
-              nodeData.name,
-              style: const TextStyle(fontSize: 10, color: Colors.white70),
-              textAlign: TextAlign.center,
-            ),
+            !isSmall
+                ? Text(
+                    nodeData.name,
+                    style: TextStyle(
+                        fontSize: !isSmall ? 12 : 5, color: Colors.white70),
+                    textAlign: TextAlign.center,
+                  )
+                : Container(),
           ],
         ),
       ),

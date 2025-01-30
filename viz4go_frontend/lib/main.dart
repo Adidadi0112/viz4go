@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'viz4go',
       theme: ThemeData(
         colorScheme: const ColorScheme(
           primary: Color(0xFF795548), // Ciemny brąz, elegancki i neutralny
