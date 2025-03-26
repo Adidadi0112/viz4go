@@ -48,22 +48,24 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
   // Węzły podświetlone (hover)
   List<String> _hoveredNodes = [];
 
-  // Mapa rodziców: klucz = ID dziecka, wartość = lista rodziców
-  Map<String, List<String>> _parentsMap = {};
-
-  // Zbiór aktualnie widocznych węzłów w hierarchii
+  // Zbiór aktualnie widocznych węzłów
   late Set<String> _visibleNodes;
+
+  // Przechowujemy poziomy wyliczone z listy połączeń
+  List<List<String>> _levels = [];
+
+  // Indeks aktualnie widocznego poziomu
+  int _currentLevelIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    print(widget.levels);
+    // Na starcie nie mamy jeszcze poziomów, więc inicjujemy pusty zbiór widocznych węzłów.
     _visibleNodes = {};
   }
 
   @override
   Widget build(BuildContext context) {
-    //final size = widget.proteinNodes[widget.entry.value].childGoTerms.length;
     final size = 10;
     return GestureDetector(
       onDoubleTap: () {
@@ -78,11 +80,11 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
         childWhenDragging: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: widget.proteinNodes[widget.entry.value].isExpanded
-              ? 200
-              : 50 + size * 1,
+              ? 200.0
+              : 50.0 + size,
           height: widget.proteinNodes[widget.entry.value].isExpanded
-              ? 200
-              : 50 + size * 1,
+              ? 200.0
+              : 50.0 + size,
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: const Color.fromARGB(255, 41, 115, 16).withOpacity(0.5),
@@ -108,11 +110,11 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: widget.proteinNodes[widget.entry.value].isExpanded
-              ? 200
-              : 50 + size * 1,
+              ? 200.0
+              : 50.0 + size,
           height: widget.proteinNodes[widget.entry.value].isExpanded
-              ? 200
-              : 50 + size * 1,
+              ? 200.0
+              : 50.0 + size,
           padding: const EdgeInsets.all(8),
           decoration: const BoxDecoration(
             color: Color.fromARGB(255, 41, 115, 16),
@@ -144,20 +146,7 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
                         child: SizedBox(child: CircularProgressIndicator()),
                       )
                     else
-                      /*
-                      CustomPaint(
-                        painter: LinePainter(
-                          _positions,
-                          _getVisibleConnections(),
-                          _nodeIndex,
-                          ['is_a','part_of','regulates','negatively_regulates'],
-                          LayoutMode.tree,
-                        ),
-                        child: Container(),
-                      ),
-                      */
                       for (var entry in _nodeIndex.entries)
-                        // Rysujemy tylko węzły, które są w widocznym zbiorze:
                         if (_visibleNodes.contains(entry.key))
                           ValueListenableBuilder<Offset>(
                             valueListenable: _positions[entry.value],
@@ -187,7 +176,7 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
                                       positions: _positions,
                                       nodeData: node,
                                       isVisible: _hoveredNodes.isEmpty ||
-                                          (_hoveredNodes.contains(entry.key)),
+                                          _hoveredNodes.contains(entry.key),
                                       isSmall: true,
                                     ),
                                   ),
@@ -202,7 +191,7 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
     );
   }
 
-  /// Ładuje lokalny graf i pozycjonuje węzły
+  /// Ładuje lokalny graf, pozycjonuje węzły oraz inicjalizuje poziomy
   Future<void> loadLocalGraph(List<dynamic> list) async {
     setState(() {
       isLoading = true;
@@ -210,18 +199,10 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
 
     _positions.clear();
     _nodeIndex.clear();
-    _parentsMap.clear();
 
     int index = 0;
 
     print('--- loadLocalGraph START (FLIP) ---');
-    print('connections (liczba: ${list.length}):');
-    for (var c in list) {
-      print('  $c');
-    }
-
-    // Budujemy mapę indeksów _nodeIndex
-    // Teraz zakładamy, że c[0] to PARENT, c[1] to CHILD
     for (var c in list) {
       final parent = c[0];
       final child = c[1];
@@ -232,10 +213,8 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
         _nodeIndex[child] = index++;
       }
     }
-
     print('Utworzone _nodeIndex: $_nodeIndex');
 
-    // Wygeneruj pozycje
     _positions = PositionGenerator.generateTreePositions(
       _nodeIndex,
       widget.connections,
@@ -243,85 +222,58 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
       isSmall: true,
     );
 
-    // Pobieramy info o węzłach z API
     final List<Node> nodesData =
         await ApiService().fetchGoTermsByNodeIndex(_nodeIndex);
-
     print('Z API przyszły węzły: ${nodesData.map((e) => e.id).toList()}');
-
-    // Budujemy mapę rodziców
-    // Który węzeł jest dzieckiem, a który rodzicem?
-    // Skoro c[0] jest parent, a c[1] to child,
-    // to w _parentsMap[child] dodajemy parenta.
-    for (var n in nodesData) {
-      _parentsMap[n.id] = [];
-    }
-    for (var c in list) {
-      final parent = c[0];
-      final child = c[1];
-      if (!_parentsMap[child]!.contains(parent)) {
-        _parentsMap[child]!.add(parent);
-      }
-    }
-
-    print('_parentsMap: $_parentsMap');
 
     setState(() {
       _nodesData = nodesData;
       isLoading = false;
     });
 
-    // Teraz, skoro c[0] jest parentem, to "liściem" będzie ten,
-    // który NIGDY nie pojawia się w c[0].
-    // Czyli najpierw zbudujemy zbiór parentSet (wszystkich c[0]):
-    Set<String> parentSet = list.map((c) => c[0] as String).toSet();
+    // Obliczamy poziomy na podstawie połączeń
+    _levels = PositionGenerator.groupGOLevels(list);
+    print('groupGOLevels: $_levels');
 
-    // Wszystkie węzły (klucze w _nodeIndex):
-    Set<String> allNodes = _nodeIndex.keys.toSet();
-
-    // Liście to takie, które nie występują w parentSet
-    List<String> leafNodes = allNodes.difference(parentSet).toList();
-
-    print('Zbiór parentSet: $parentSet');
-    print('Wszystkie węzły: $allNodes');
-    print('Lista liści: $leafNodes');
-
-    // Wybieramy pierwszy liść (najbardziej szczegółowy)
-    String? deepestNode = leafNodes.isNotEmpty ? leafNodes.first : null;
-
-    // Na start wyświetlamy tylko ten najgłębszy
-    if (deepestNode != null) {
-      setState(() {
-        _visibleNodes = {deepestNode};
-      });
-      print('Startowy (najbardziej szczegółowy) węzeł to: $deepestNode');
+    // Ustawienie początkowego widocznego poziomu, jeśli _levels nie jest puste
+    if (_levels.isNotEmpty) {
+      _currentLevelIndex = _levels.length - widget.selectedLevels;
+      if (_currentLevelIndex < 0) {
+        _currentLevelIndex = 0;
+      }
+      _visibleNodes = _levels[_currentLevelIndex].toSet();
+    } else {
+      _visibleNodes = {};
+      print("Warning: _levels jest pusta.");
     }
 
+    print('Początkowy poziom (_currentLevelIndex): $_currentLevelIndex');
+    print('Widoczne węzły: $_visibleNodes');
     print('--- loadLocalGraph END (FLIP) ---');
   }
 
-  /// Zwraca połączenia między wyłącznie widocznymi węzłami
+  /// Zwraca połączenia między widocznymi węzłami
   List<dynamic> _getVisibleConnections() {
     return widget.connections.where((c) {
       return _visibleNodes.contains(c[0]) && _visibleNodes.contains(c[1]);
     }).toList();
   }
 
-  /// Po kliknięciu w węzeł - odsłaniamy jego rodziców
+  /// Po kliknięciu w węzeł - odsłaniamy kolejny (bardziej ogólny) poziom
   void _handleNodeTap(String nodeId) {
     print('--- _handleNodeTap($nodeId) ---');
-    print('Rodzice tego węzła: ${_parentsMap[nodeId]}');
-
-    if (_parentsMap.containsKey(nodeId)) {
-      _visibleNodes.addAll(_parentsMap[nodeId]!);
+    if (_currentLevelIndex > 0) {
+      int nextLevel = _currentLevelIndex - 1;
+      _visibleNodes.addAll(_levels[nextLevel]);
+      _currentLevelIndex = nextLevel;
+      print('Dodano poziom: $nextLevel, nowe widoczne węzły: $_visibleNodes');
+      setState(() {});
+    } else {
+      print('Osiągnięto najwyższy poziom hierarchii.');
     }
-
-    print('Po dodaniu rodziców, _visibleNodes = $_visibleNodes');
-
-    setState(() {});
   }
 
-  /// Podświetlanie (hover) węzłów:
+  /// Aktualizuje listę węzłów podświetlonych przy najechaniu kursorem
   void _updateHoveredNodes(String hoveredNode) {
     final List<String> relatedNodes = [hoveredNode];
 
