@@ -29,7 +29,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _items = [];
   final List<String> _activeFilters = ['is_a', 'part_of'];
   List<Node> _nodesData = [];
-  List<ProteinNode> _proteinNodesData = [];
+  final List<ProteinNode> _proteinNodesData = [];
+  int _selectedLevels = 1;
   final Map<String, List<dynamic>> proteinEdges = {};
   LayoutMode _currentLayoutMode = LayoutMode.random;
   final TextEditingController _goIdController = TextEditingController();
@@ -78,7 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _items = _proteinAndConnections!.values.expand((e) => e).toList();
         _protein = "All proteins";
-        _loadProteinGraph(_proteinAndConnections);
+        _loadProteinGraph(_proteinAndConnections,
+            selectedLevels: _selectedLevels);
       });
     }
   }
@@ -96,7 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _loadProteinGraph(Map<String, dynamic>? proteinAndConnections) {
+  void _loadProteinGraph(Map<String, dynamic>? proteinAndConnections,
+      {int selectedLevels = 1}) {
     setState(() {
       isLoading = true;
     });
@@ -106,24 +109,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _nodeIndex = {};
     int index = 0;
 
-    _proteinAndConnections!.forEach(
-      (protein, connections) {
-        final goTerms =
-            connections.expand((c) => [c[0], c[1]]).toSet().toList();
-        _proteinNodesData.add(ProteinNode(
-            id: protein,
-            name: protein,
-            isExpanded: false,
-            childGoTerms: goTerms));
-      },
-    );
-    for (int i = 0; i <= _proteinNodesData.length - 1; i++) {
-      for (int j = 0; j <= _proteinNodesData.length - 2; j++) {
-        final int commonGoTerms = _proteinNodesData[i]
-            .childGoTerms
-            .toSet()
-            .intersection(_proteinNodesData[j + 1].childGoTerms.toSet())
-            .length;
+    // Przetwarzanie danych białkowych i przygotowanie węzłów
+    _proteinAndConnections!.forEach((protein, connections) {
+      final levels = PositionGenerator.groupGOLevels(connections);
+      _proteinNodesData.add(ProteinNode(
+        id: protein,
+        name: protein,
+        isExpanded: false,
+        levels: levels,
+      ));
+    });
+
+    // Wyznaczanie krawędzi między białkami na podstawie wspólnych GO termów z wybranych poziomów
+    for (int i = 0; i < _proteinNodesData.length; i++) {
+      for (int j = i + 1; j < _proteinNodesData.length; j++) {
+        final terms1 =
+            _getSelectedTerms(_proteinNodesData[i].levels, selectedLevels);
+        final terms2 =
+            _getSelectedTerms(_proteinNodesData[j].levels, selectedLevels);
+        final int commonGoTerms = terms1.intersection(terms2).length;
         if (commonGoTerms > 0) {
           proteinEdges[_proteinNodesData[i].id] = [
             _proteinNodesData[j].id,
@@ -132,6 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     }
+
     if (proteinAndConnections != null) {
       for (String proteinName in proteinAndConnections.keys) {
         if (!_nodeIndex.containsKey(proteinName)) {
@@ -140,11 +145,12 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // Teraz wygeneruj losowe pozycje w obszarze 800x700
+    // Generowanie losowych pozycji dla węzłów
     _positions = PositionGenerator.generateRandomPositions(
       _nodeIndex.length,
       const Rect.fromLTWH(0, 0, 1000, 1000),
     );
+
     final List<Node> proteinNodesData =
         proteinAndConnections?.keys.map((proteinName) {
               return Node(
@@ -158,6 +164,18 @@ class _HomeScreenState extends State<HomeScreen> {
       _nodesData = proteinNodesData;
       isLoading = false;
     });
+  }
+
+// Pomocnicza funkcja zwracająca zbiór GO termów pobranych z ostatnich 'selectedLevels' poziomów.
+// Jeśli 'selectedLevels' przekracza liczbę poziomów w 'levels', zwracane są wszystkie poziomy.
+  Set<String> _getSelectedTerms(List<List<String>> levels, int selectedLevels) {
+    final int startIndex =
+        levels.length - selectedLevels < 0 ? 0 : levels.length - selectedLevels;
+    final selectedTerms = <String>{};
+    for (int i = startIndex; i < levels.length; i++) {
+      selectedTerms.addAll(levels[i]);
+    }
+    return selectedTerms;
   }
 
   void _decrementProteinIndex() {
@@ -349,6 +367,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           .isExpanded;
                                                 });
                                               },
+                                              levels:
+                                                  _proteinNodesData[entry.value]
+                                                      .levels,
+                                              selectedLevels: _selectedLevels,
                                             ),
                                     ),
                                   );
@@ -446,21 +468,78 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     )
-                  : Container(
-                      margin: const EdgeInsets.all(8),
-                      child: CircleAvatar(
-                        backgroundColor: Colors.blueGrey[700],
-                        child: IconButton(
-                          icon: const Icon(Icons.fullscreen_exit,
-                              color: Colors.white),
-                          onPressed: () {
-                            setState(() {
-                              _isEverythingProteins = !_isEverythingProteins;
-                              _updateProteinData();
-                            });
-                          },
+                  : Row(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.all(8),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.blueGrey[700],
+                            child: IconButton(
+                              icon: const Icon(Icons.fullscreen_exit,
+                                  color: Colors.white),
+                              onPressed: () {
+                                setState(() {
+                                  _isEverythingProteins =
+                                      !_isEverythingProteins;
+                                  _updateProteinData();
+                                });
+                              },
+                            ),
+                          ),
                         ),
-                      ),
+                        Container(
+                            margin: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 2, horizontal: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.blueGrey[700],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text(
+                                    _selectedLevels.toString(),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                const Divider(
+                                  color: Colors.white,
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedLevels++;
+                                      _loadProteinGraph(_proteinAndConnections,
+                                          selectedLevels: _selectedLevels);
+                                    });
+                                  },
+                                  icon: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const Divider(
+                                  color: Colors.white,
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedLevels--;
+                                      _loadProteinGraph(_proteinAndConnections,
+                                          selectedLevels: _selectedLevels);
+                                    });
+                                  },
+                                  icon: const Icon(
+                                    Icons.remove,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ))
+                      ],
                     ),
             ),
         ],

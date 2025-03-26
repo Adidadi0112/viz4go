@@ -14,6 +14,8 @@ class ProteinNodeWidget extends StatefulWidget {
   final List<dynamic> connections;
   bool isVisible = true;
   final VoidCallback onDoubleTap;
+  final List<List<String>> levels;
+  final int selectedLevels;
 
   ProteinNodeWidget({
     super.key,
@@ -23,6 +25,8 @@ class ProteinNodeWidget extends StatefulWidget {
     required this.connections,
     required this.onDoubleTap,
     this.isVisible = true,
+    required this.levels,
+    required this.selectedLevels,
   });
 
   @override
@@ -53,13 +57,14 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
   @override
   void initState() {
     super.initState();
+    print(widget.levels);
     _visibleNodes = {};
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = widget.proteinNodes[widget.entry.value].childGoTerms.length;
-
+    //final size = widget.proteinNodes[widget.entry.value].childGoTerms.length;
+    final size = 10;
     return GestureDetector(
       onDoubleTap: () {
         setState(() {

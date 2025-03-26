@@ -142,8 +142,22 @@ class PositionGenerator {
   }
 
 // Rekurencyjna metoda pomocnicza do dodawania wierzchołków na odpowiednie poziomy
-  static void _addToLevels(Map<String, List<String>> tree, String term,
-      List<List<String>> levels, int depth) {
+  static void _addToLevels(
+    Map<String, List<String>> tree,
+    String term,
+    List<List<String>> levels,
+    int depth, [
+    Set<String>? visited,
+  ]) {
+    visited ??= <String>{};
+
+    // Jeśli już odwiedziliśmy ten termin, przerywamy rekurencję dla niego
+    if (visited.contains(term)) {
+      return;
+    }
+    visited.add(term);
+
+    // Upewnij się, że mamy wystarczającą liczbę poziomów
     while (levels.length <= depth) {
       levels.add([]);
     }
@@ -152,14 +166,14 @@ class PositionGenerator {
       levels[depth].add(term);
     }
 
-    // Teraz sprawdzamy, czy dany węzeł (term) jest rodzicem dla innych
+    // Szukamy rodziców, czyli kluczy, których lista dzieci zawiera 'term'
     for (var entry in tree.entries) {
       if (entry.value.contains(term)) {
-        _addToLevels(tree, entry.key, levels, depth + 1);
+        _addToLevels(tree, entry.key, levels, depth + 1, visited);
       }
     }
 
-    // Usuwanie duplikatów z poziomu wyższego, które są obecne na niższych poziomach
+    // Usuwanie duplikatów z poziomu wyższego, które pojawiają się na niższych poziomach
     if (depth + 1 < levels.length) {
       levels[depth] = levels[depth]
           .where((t) => !levels.sublist(depth + 1).expand((x) => x).contains(t))

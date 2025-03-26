@@ -2,13 +2,13 @@ import 'node.dart';
 
 class ProteinNode extends Node {
   bool isExpanded;
-  List<dynamic> childGoTerms;
+  List<List<String>> levels;
 
   ProteinNode({
     required super.id,
     required super.name,
     this.isExpanded = false,
-    this.childGoTerms = const [],
+    this.levels = const [],
   }) : super(
           definition: null,
           namespace: null,
