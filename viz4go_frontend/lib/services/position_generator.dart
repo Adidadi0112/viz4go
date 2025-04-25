@@ -180,4 +180,38 @@ class PositionGenerator {
           .toList();
     }
   }
+
+  static List<ValueNotifier<Offset>> generateClusteredPositions(
+      Map<String, int> clusterByProtein,
+      Map<String, int> nodeIndex,
+      Rect area) {
+    final clusterCount = clusterByProtein.values.toSet().length;
+    final double islandRadius = 180; // promień wysepki
+    final double bigRadius = area.width / 2; // promień okręgu dla wysepek
+    final center = Offset(
+        area.left + 1000 + area.width / 2, area.top + 1000 + area.height / 2);
+
+    // 1. wyznacz centra klastrów równomiernie na okręgu
+    final angleStep = 2 * pi / clusterCount;
+    final Map<int, Offset> islandCenter = {};
+    for (int i = 0; i < clusterCount; i++) {
+      final a = i * angleStep;
+      islandCenter[i] = Offset(
+          center.dx + bigRadius * cos(a), center.dy + bigRadius * sin(a));
+    }
+
+    // 2. w obrębie wysepki losowo (można dodać własną miniforce-layout)
+    final rand = Random();
+    final positions = List<ValueNotifier<Offset>>.generate(
+        nodeIndex.length, (_) => ValueNotifier(Offset.zero));
+
+    clusterByProtein.forEach((protein, cid) {
+      final idx = nodeIndex[protein]!;
+      final local = Offset(
+          rand.nextDouble() * islandRadius, rand.nextDouble() * islandRadius);
+      positions[idx].value = islandCenter[cid]! + local;
+    });
+
+    return positions;
+  }
 }

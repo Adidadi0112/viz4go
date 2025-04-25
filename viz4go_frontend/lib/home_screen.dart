@@ -98,6 +98,40 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Map<String, int> _clusterProteins(Map<String, List<dynamic>> edges,
+      {int minShared = 3}) {
+    // próg “wiele wspólnych”
+    // 1. zbuduj listę sąsiedztwa (tylko krawędzie ≥ minShared)
+    final Map<String, Set<String>> adj = {};
+    edges.forEach((a, info) {
+      final b = info[0] as String;
+      final w = info[1] as int;
+      if (w < minShared) return;
+      adj.putIfAbsent(a, () => {}).add(b);
+      adj.putIfAbsent(b, () => {}).add(a);
+    });
+
+    // 2. DFS (union-find też OK) – szukanie składowych spójnych
+    final visited = <String>{};
+    int cid = 0;
+    final Map<String, int> cluster = {};
+    void dfs(String p) {
+      cluster[p] = cid;
+      visited.add(p);
+      for (final nb in adj[p] ?? {}) {
+        if (!visited.contains(nb)) dfs(nb);
+      }
+    }
+
+    for (final p in _proteinNodesData.map((e) => e.id)) {
+      if (!visited.contains(p)) {
+        dfs(p);
+        cid++;
+      }
+    }
+    return cluster;
+  }
+
   void _loadProteinGraph(Map<String, dynamic>? proteinAndConnections,
       {int selectedLevels = 1}) {
     setState(() {
@@ -144,12 +178,11 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     }
+    final clusterByProtein = _clusterProteins(proteinEdges, minShared: 4);
 
     // Generowanie losowych pozycji dla węzłów
-    _positions = PositionGenerator.generateRandomPositions(
-      _nodeIndex.length,
-      const Rect.fromLTWH(0, 0, 1000, 1000),
-    );
+    _positions = PositionGenerator.generateClusteredPositions(
+        clusterByProtein, _nodeIndex, const Rect.fromLTWH(0, 0, 1600, 1200));
 
     final List<Node> proteinNodesData =
         proteinAndConnections?.keys.map((proteinName) {
