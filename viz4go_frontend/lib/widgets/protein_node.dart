@@ -1,8 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:viz4go_frontend/home_screen.dart';
 import 'package:viz4go_frontend/models/node.dart';
 import 'package:viz4go_frontend/services/api_service.dart';
-import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
 import 'package:viz4go_frontend/widgets/protein_node_line_painter.dart';
 import '../models/protein_node.dart';
@@ -36,32 +36,17 @@ class ProteinNodeWidget extends StatefulWidget {
 
 class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
   bool isLoading = false;
-
-  // Lista z informacjami o wszystkich węzłach (GOtermach)
   List<Node> _nodesData = [];
-
-  // Mapa (idWęzła -> indeks w _positions)
   Map<String, int> _nodeIndex = {};
-
-  // Pozycje węzłów
   List<ValueNotifier<Offset>> _positions = [];
-
-  // Węzły podświetlone (hover)
   List<String> _hoveredNodes = [];
-
-  // Zbiór aktualnie widocznych węzłów
   late Set<String> _visibleNodes;
-
-  // Przechowujemy poziomy wyliczone z listy połączeń
   List<List<String>> _levels = [];
-
-  // Indeks aktualnie widocznego poziomu
   int _currentLevelIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    // Na starcie nie mamy jeszcze poziomów, więc inicjujemy pusty zbiór widocznych węzłów.
     _visibleNodes = {};
   }
 
@@ -147,11 +132,10 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
                       CustomPaint(
                         painter: ProteinNodeLinePainter(
                           _positions,
-                          _getVisibleConnections(), // już masz tę metodę
+                          _getVisibleConnections(),
                           _nodeIndex,
                         ),
-                        size: Size
-                            .infinite, // bierze wymiary rodzica (AnimatedContainer)
+                        size: Size.infinite,
                       ),
                     if (isLoading)
                       const Center(
@@ -203,7 +187,33 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
     );
   }
 
-  /// Ładuje lokalny graf, pozycjonuje węzły oraz inicjalizuje poziomy
+  void _recenterTree() {
+    if (_visibleNodes.isEmpty) return;
+
+    double minX = double.infinity, minY = double.infinity;
+    double maxX = -double.infinity, maxY = -double.infinity;
+
+    for (final id in _visibleNodes) {
+      final idx = _nodeIndex[id];
+      if (idx == null) continue;
+      final p = _positions[idx].value;
+      minX = math.min(minX, p.dx);
+      minY = math.min(minY, p.dy);
+      maxX = math.max(maxX, p.dx);
+      maxY = math.max(maxY, p.dy);
+    }
+
+    final Offset treeCenter = Offset((minX + maxX) / 2, (minY + maxY) / 2);
+
+    const Offset containerCenter = Offset(75, 75);
+
+    final Offset delta = containerCenter - treeCenter;
+
+    for (final n in _positions) {
+      n.value += delta;
+    }
+  }
+
   Future<void> loadLocalGraph(List<dynamic> list) async {
     setState(() {
       isLoading = true;
@@ -214,7 +224,6 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
 
     int index = 0;
 
-    print('--- loadLocalGraph START (FLIP) ---');
     for (var c in list) {
       final parent = c[0];
       final child = c[1];
@@ -225,29 +234,25 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
         _nodeIndex[child] = index++;
       }
     }
-    print('Utworzone _nodeIndex: $_nodeIndex');
 
     _positions = PositionGenerator.generateTreePositions(
       _nodeIndex,
       widget.connections,
-      const Rect.fromLTWH(40, 5, 100, 100),
+      const Rect.fromLTWH(20, 0, 140, 140),
       isSmall: true,
     );
 
     final List<Node> nodesData =
         await ApiService().fetchGoTermsByNodeIndex(_nodeIndex);
-    print('Z API przyszły węzły: ${nodesData.map((e) => e.id).toList()}');
 
     setState(() {
       _nodesData = nodesData;
       isLoading = false;
     });
 
-    // Obliczamy poziomy na podstawie połączeń
-    _levels = PositionGenerator.groupGOLevels(list);
-    print('groupGOLevels: $_levels');
+    _recenterTree();
 
-    // Ustawienie początkowego widocznego poziomu, jeśli _levels nie jest puste
+    _levels = PositionGenerator.groupGOLevels(list);
     if (_levels.isNotEmpty) {
       _currentLevelIndex = _levels.length - widget.selectedLevels;
       if (_currentLevelIndex < 0) {
@@ -256,36 +261,26 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
       _visibleNodes = _levels[_currentLevelIndex].toSet();
     } else {
       _visibleNodes = {};
-      print("Warning: _levels jest pusta.");
     }
-
-    print('Początkowy poziom (_currentLevelIndex): $_currentLevelIndex');
-    print('Widoczne węzły: $_visibleNodes');
-    print('--- loadLocalGraph END (FLIP) ---');
   }
 
-  /// Zwraca połączenia między widocznymi węzłami
   List<dynamic> _getVisibleConnections() {
     return widget.connections.where((c) {
       return _visibleNodes.contains(c[0]) && _visibleNodes.contains(c[1]);
     }).toList();
   }
 
-  /// Po kliknięciu w węzeł - odsłaniamy kolejny (bardziej ogólny) poziom
   void _handleNodeTap(String nodeId) {
-    print('--- _handleNodeTap($nodeId) ---');
     if (_currentLevelIndex > 0) {
       int nextLevel = _currentLevelIndex - 1;
       _visibleNodes.addAll(_levels[nextLevel]);
       _currentLevelIndex = nextLevel;
-      print('Dodano poziom: $nextLevel, nowe widoczne węzły: $_visibleNodes');
-      setState(() {});
-    } else {
-      print('Osiągnięto najwyższy poziom hierarchii.');
-    }
+      setState(() {
+        _recenterTree();
+      });
+    } else {}
   }
 
-  /// Aktualizuje listę węzłów podświetlonych przy najechaniu kursorem
   void _updateHoveredNodes(String hoveredNode) {
     final List<String> relatedNodes = [hoveredNode];
 
