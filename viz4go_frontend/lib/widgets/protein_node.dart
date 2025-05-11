@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:viz4go_frontend/home_screen.dart';
 import 'package:viz4go_frontend/models/node.dart';
 import 'package:viz4go_frontend/services/api_service.dart';
+import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
+import 'package:viz4go_frontend/widgets/protein_node_line_painter.dart';
 import '../models/protein_node.dart';
 import '../services/position_generator.dart';
 
@@ -85,7 +88,8 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
               : 50.0 + size,
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 41, 115, 16).withOpacity(0.5),
+            color:
+                const Color.fromARGB(255, 41, 115, 16).withValues(alpha: 0.5),
             shape: BoxShape.circle,
             boxShadow: const [
               BoxShadow(
@@ -139,6 +143,16 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
               : Stack(
                   alignment: Alignment.topCenter,
                   children: [
+                    if (!isLoading)
+                      CustomPaint(
+                        painter: ProteinNodeLinePainter(
+                          _positions,
+                          _getVisibleConnections(), // już masz tę metodę
+                          _nodeIndex,
+                        ),
+                        size: Size
+                            .infinite, // bierze wymiary rodzica (AnimatedContainer)
+                      ),
                     if (isLoading)
                       const Center(
                         child: SizedBox(child: CircularProgressIndicator()),

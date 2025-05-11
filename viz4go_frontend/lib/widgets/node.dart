@@ -27,18 +27,18 @@ class NodeWidget extends StatelessWidget {
       switch (nodeData.namespace) {
         case 'cellular_component':
           return isVisible
-              ? Colors.blueAccent.withOpacity(0.8)
-              : Colors.blueAccent.withOpacity(0.2);
+              ? Colors.blueAccent.withValues(alpha: 0.8)
+              : Colors.blueAccent.withValues(alpha: 0.2);
         case 'biological_process':
           return isVisible
-              ? Colors.greenAccent.withOpacity(0.8)
-              : Colors.greenAccent.withOpacity(0.2);
+              ? Colors.greenAccent.withValues(alpha: 0.8)
+              : Colors.greenAccent.withValues(alpha: 0.2);
         case 'molecular_function':
           return isVisible
-              ? Colors.orangeAccent.withOpacity(0.8)
-              : Colors.orangeAccent.withOpacity(0.2);
+              ? Colors.orangeAccent.withValues(alpha: 0.8)
+              : Colors.orangeAccent.withValues(alpha: 0.2);
         default:
-          return Colors.grey.withOpacity(0.8); // domyślny kolor
+          return Colors.grey.withValues(alpha: 0.8); // domyślny kolor
       }
     }
 
@@ -48,7 +48,8 @@ class NodeWidget extends StatelessWidget {
         width: width,
         padding: EdgeInsets.all(isSmall ? 1 : 4),
         decoration: BoxDecoration(
-          color: getNodeColor().withOpacity(0.5), // Kolor podczas przeciągania
+          color: getNodeColor()
+              .withValues(alpha: 0.5), // Kolor podczas przeciągania
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
             BoxShadow(
@@ -63,16 +64,16 @@ class NodeWidget extends StatelessWidget {
             Text(
               entry.key,
               style:
-                  TextStyle(fontSize: !isSmall ? 12 : 5, color: Colors.black),
+                  TextStyle(fontSize: !isSmall ? 12 : 4, color: Colors.black),
             ),
-            !isSmall
-                ? Text(
-                    nodeData.name,
-                    style: TextStyle(
-                        fontSize: !isSmall ? 12 : 5, color: Colors.black54),
-                    textAlign: TextAlign.center,
-                  )
-                : Container(),
+            //!isSmall ?
+            Text(
+              nodeData.name,
+              style:
+                  TextStyle(fontSize: !isSmall ? 12 : 4, color: Colors.black54),
+              textAlign: TextAlign.center,
+            )
+            // : Container(),
           ],
         ),
       ),
@@ -98,18 +99,18 @@ class NodeWidget extends StatelessWidget {
             Text(
               entry.key,
               style: TextStyle(
-                  fontSize: !isSmall ? 12 : 5,
+                  fontSize: !isSmall ? 12 : 4,
                   color: Colors.white,
                   fontWeight: FontWeight.bold),
             ),
-            !isSmall
-                ? Text(
-                    nodeData.name,
-                    style: TextStyle(
-                        fontSize: !isSmall ? 12 : 5, color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  )
-                : Container(),
+            //  !isSmall ?
+            Text(
+              nodeData.name,
+              style:
+                  TextStyle(fontSize: !isSmall ? 12 : 4, color: Colors.white70),
+              textAlign: TextAlign.center,
+            )
+            //      : Container(),
           ],
         ),
       ),
