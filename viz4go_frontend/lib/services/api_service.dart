@@ -103,4 +103,24 @@ class ApiService {
       return null;
     }
   }
+
+  Future<Map<String, int>> fetchProteinClusters(
+      Map<String, List<String>> proteinToGo,
+      {int minShared = 2,
+      String algo = "connected"}) async {
+    final uri = Uri.parse('$_baseUrl/api/cluster/protein');
+    final resp = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'protein_to_go': proteinToGo,
+        'min_shared': minShared,
+        'algo': algo,
+      }),
+    );
+    if (resp.statusCode != 200) throw Exception(resp.body);
+    final Map<String, dynamic> json = jsonDecode(resp.body);
+    return (json['clusters'] as Map)
+        .map((k, v) => MapEntry(k as String, v as int));
+  }
 }

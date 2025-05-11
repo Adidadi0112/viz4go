@@ -132,71 +132,82 @@ class _HomeScreenState extends State<HomeScreen> {
     return cluster;
   }
 
-  void _loadProteinGraph(Map<String, dynamic>? proteinAndConnections,
-      {int selectedLevels = 1}) {
-    setState(() {
-      isLoading = true;
-    });
+  Future<void> _loadProteinGraph(Map<String, dynamic>? proteinAndConnections,
+      {int selectedLevels = 1}) async {
+    // =================== 1. przygotowanie ===================
+    setState(() => isLoading = true);
 
-    // Wyczyść stare dane
     _positions.clear();
     _nodeIndex = {};
+    _proteinNodesData.clear();
+    proteinEdges.clear();
+
     int index = 0;
 
-    // Przetwarzanie danych białkowych i przygotowanie węzłów
+    // ========= 2. budujemy listę ProteinNode + indeks węzłów =========
     _proteinAndConnections!.forEach((protein, connections) {
       final levels = PositionGenerator.groupGOLevels(connections);
+
       _proteinNodesData.add(ProteinNode(
         id: protein,
         name: protein,
         isExpanded: false,
         levels: levels,
       ));
+
+      _nodeIndex[protein] = index++;
     });
 
-    // Wyznaczanie krawędzi między białkami na podstawie wspólnych GO termów z wybranych poziomów
+    // =========== 3. mapowanie: protein → płaska lista GO =============
+    final Map<String, List<String>> proteinToGo = {};
+    _proteinAndConnections!.forEach((protein, connections) {
+      final flatTerms = PositionGenerator.groupGOLevels(connections)
+          .expand((lvl) => lvl)
+          .cast<String>()
+          .toSet()
+          .toList(); // usuwamy duplikaty
+      proteinToGo[protein] = flatTerms;
+    });
+
+    // ================= 4. pobranie klastrów z backendu ================
+    Map<String, int> clusters = {};
+    try {
+      clusters = await ApiService()
+          .fetchProteinClusters(proteinToGo, minShared: 3, algo: "louvain");
+    } catch (e) {
+      debugPrint("Cluster fetch failed → fallback random layout: $e");
+    }
+
+    // ===== 5. lokalne wyznaczenie krawędzi & liczby wspólnych GO =====
     for (int i = 0; i < _proteinNodesData.length; i++) {
       for (int j = i + 1; j < _proteinNodesData.length; j++) {
         final terms1 =
             _getSelectedTerms(_proteinNodesData[i].levels, selectedLevels);
         final terms2 =
             _getSelectedTerms(_proteinNodesData[j].levels, selectedLevels);
-        final int commonGoTerms = terms1.intersection(terms2).length;
-        if (commonGoTerms > 0) {
+        final common = terms1.intersection(terms2).length;
+        if (common > 0) {
           proteinEdges[_proteinNodesData[i].id] = [
             _proteinNodesData[j].id,
-            commonGoTerms
+            common
           ];
         }
       }
     }
 
-    if (proteinAndConnections != null) {
-      for (String proteinName in proteinAndConnections.keys) {
-        if (!_nodeIndex.containsKey(proteinName)) {
-          _nodeIndex[proteinName] = index++;
-        }
-      }
-    }
-    final clusterByProtein = _clusterProteins(proteinEdges, minShared: 4);
-
-    // Generowanie losowych pozycji dla węzłów
+    // ============= 6. generowanie pozycji (wysepki klastrów) ==========
     _positions = PositionGenerator.generateClusteredPositions(
-        clusterByProtein, _nodeIndex, const Rect.fromLTWH(0, 0, 1600, 1200));
+      clusters,
+      _nodeIndex,
+      const Rect.fromLTWH(0, 0, 1600, 1200),
+    );
 
-    final List<Node> proteinNodesData =
-        proteinAndConnections?.keys.map((proteinName) {
-              return Node(
-                id: proteinName,
-                name: proteinName,
-              );
-            }).toList() ??
-            [];
+    // ============= 7. Node-y (model danych dla UI) ===================
+    _nodesData =
+        _proteinAndConnections!.keys.map((p) => Node(id: p, name: p)).toList();
 
-    setState(() {
-      _nodesData = proteinNodesData;
-      isLoading = false;
-    });
+    // ========================== 8. finisz =============================
+    setState(() => isLoading = false);
   }
 
 // Pomocnicza funkcja zwracająca zbiór GO termów pobranych z ostatnich 'selectedLevels' poziomów.

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:viz4go_frontend/home_screen.dart';
 import 'package:viz4go_frontend/models/node.dart';
 import 'package:viz4go_frontend/services/api_service.dart';
-import 'package:viz4go_frontend/widgets/line_painter.dart';
 import 'package:viz4go_frontend/widgets/node.dart';
 import '../models/protein_node.dart';
 import '../services/position_generator.dart';

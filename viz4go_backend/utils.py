@@ -1,5 +1,7 @@
 import networkx as nx
 import pandas as pd
+from collections import defaultdict
+from networkx.algorithms.community import louvain_communities
 
 def check_all_shortest_paths(graph, ontology_ids):
     found_paths_with_relations = []
@@ -72,3 +74,41 @@ def get_connections(df, start_nodes):
     
     print(f"\nFinal connections: {connections}")
     return connections
+
+def clusters_by_shared_go(protein_to_go: dict[str, list[str]],
+                          min_shared: int = 3,
+                          algo: str = "connected",
+                          resolution=1.0) -> dict[str, int]:
+    """
+    Zwraca mapping:  protein_id -> cluster_id.
+    *min_shared*  – minimalna liczba wspólnych GO-termów,
+    *algo*        – "connected" (składowe spójne) lub "louvain".
+    """
+    G = nx.Graph()
+    proteins = list(protein_to_go.keys())
+    for i, p1 in enumerate(proteins):
+        terms1 = set(protein_to_go[p1])
+        for p2 in proteins[i + 1:]:
+            common = terms1.intersection(protein_to_go[p2])
+            w = len(common)
+            if w >= min_shared:
+                G.add_edge(p1, p2, weight=w)
+
+    clusters = {}
+    if algo == "louvain":
+        comms = louvain_communities(G, weight="weight", resolution=resolution)
+        for cid, comm in enumerate(comms):
+            for p in comm:
+                clusters[p] = cid
+    else:                       
+        for cid, component in enumerate(nx.connected_components(G)):
+            for p in component:
+                clusters[p] = cid
+
+    unassigned = set(proteins) - clusters.keys()
+    next_id = max(clusters.values(), default=-1) + 1
+    for p in unassigned:
+        clusters[p] = next_id
+        next_id += 1
+    return clusters
+
