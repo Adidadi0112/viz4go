@@ -9,6 +9,8 @@ class ApiService {
 
   Future<List<Node>> fetchGoTermsByNodeIndex(Map<String, int> nodeIndex) async {
     try {
+      print(
+          'Fetching GO terms for node index: $nodeIndex endpoint /api/go/terms');
       List<String> termIds = nodeIndex.keys.toList();
 
       final uri = Uri.http(
@@ -39,6 +41,8 @@ class ApiService {
 
   Future<List<dynamic>> fetchGoConnections(List<String> goTermIds) async {
     try {
+      print(
+          'Fetching GO connections for term IDs: $goTermIds endpoint /api/go/connections');
       final response = await http.post(
         Uri.parse('$_baseUrl/api/go/connections'),
         headers: {'Content-Type': 'application/json'},

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class ProteinNodeLinePainter extends CustomPainter {
   final List<ValueNotifier<Offset>> positions;
-  final List<dynamic> connections; // [parent, child, …]
+  final List<dynamic> connections;
   final Map<String, int> nodeIndex;
 
   ProteinNodeLinePainter(this.positions, this.connections, this.nodeIndex);
@@ -22,21 +22,18 @@ class ProteinNodeLinePainter extends CustomPainter {
       final int sIdx = nodeIndex[c[0]]!;
       final int eIdx = nodeIndex[c[1]]!;
 
-      final Offset start = positions[sIdx].value + startFix; // ↖ tu będzie grot
+      final Offset start = positions[sIdx].value + startFix;
       final Offset end = positions[eIdx].value + endFix;
 
       canvas.drawLine(start, end, paint);
-      _drawArrow(canvas, paint, start,
-          end); // grot przy 'start', skierowany w stronę 'end'
+      _drawArrow(canvas, paint, start, end);
     }
   }
 
-  /// Rysuje grot o wierzchołku w `tip`, zwrócony w stronę `tail`.
   void _drawArrow(Canvas canvas, Paint paint, Offset tip, Offset tail) {
     const double len = 6.0;
     const double angle = 30 * math.pi / 180;
 
-    // ↓↓ JEDYNA ZMIANA ↓↓ – odwracamy wektor, by grot patrzył do 'tail'
     final double dir = (tail - tip).direction;
 
     final Offset p1 = tip + Offset.fromDirection(dir + angle, len);

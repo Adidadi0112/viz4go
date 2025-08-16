@@ -85,56 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  List<Offset> _calculateGoTermPositions(Offset center, int count) {
-    const double radius = 100.0;
-    final double angleStep = 2 * pi / count;
-    return List.generate(count, (i) {
-      final angle = angleStep * i;
-      return center +
-          Offset(
-            radius * cos(angle),
-            radius * sin(angle),
-          );
-    });
-  }
-
-  Map<String, int> _clusterProteins(Map<String, List<dynamic>> edges,
-      {int minShared = 3}) {
-    // próg “wiele wspólnych”
-    // 1. zbuduj listę sąsiedztwa (tylko krawędzie ≥ minShared)
-    final Map<String, Set<String>> adj = {};
-    edges.forEach((a, info) {
-      final b = info[0] as String;
-      final w = info[1] as int;
-      if (w < minShared) return;
-      adj.putIfAbsent(a, () => {}).add(b);
-      adj.putIfAbsent(b, () => {}).add(a);
-    });
-
-    // 2. DFS (union-find też OK) – szukanie składowych spójnych
-    final visited = <String>{};
-    int cid = 0;
-    final Map<String, int> cluster = {};
-    void dfs(String p) {
-      cluster[p] = cid;
-      visited.add(p);
-      for (final nb in adj[p] ?? {}) {
-        if (!visited.contains(nb)) dfs(nb);
-      }
-    }
-
-    for (final p in _proteinNodesData.map((e) => e.id)) {
-      if (!visited.contains(p)) {
-        dfs(p);
-        cid++;
-      }
-    }
-    return cluster;
-  }
-
   Future<void> _loadProteinGraph(Map<String, dynamic>? proteinAndConnections,
       {int selectedLevels = 1}) async {
-    // =================== 1. przygotowanie ===================
     setState(() => isLoading = true);
 
     _positions.clear();
@@ -144,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     int index = 0;
 
-    // ========= 2. budujemy listę ProteinNode + indeks węzłów =========
     _proteinAndConnections!.forEach((protein, connections) {
       final levels = PositionGenerator.groupGOLevels(connections);
 
@@ -158,18 +109,16 @@ class _HomeScreenState extends State<HomeScreen> {
       _nodeIndex[protein] = index++;
     });
 
-    // =========== 3. mapowanie: protein → płaska lista GO =============
     final Map<String, List<String>> proteinToGo = {};
     _proteinAndConnections!.forEach((protein, connections) {
       final flatTerms = PositionGenerator.groupGOLevels(connections)
           .expand((lvl) => lvl)
           .cast<String>()
           .toSet()
-          .toList(); // usuwamy duplikaty
+          .toList();
       proteinToGo[protein] = flatTerms;
     });
 
-    // ================= 4. pobranie klastrów z backendu ================
     Map<String, int> clusters = {};
     try {
       clusters = await ApiService()
@@ -178,7 +127,6 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint("Cluster fetch failed → fallback random layout: $e");
     }
 
-    // ===== 5. lokalne wyznaczenie krawędzi & liczby wspólnych GO =====
     for (int i = 0; i < _proteinNodesData.length; i++) {
       for (int j = i + 1; j < _proteinNodesData.length; j++) {
         final terms1 =
@@ -195,23 +143,18 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // ============= 6. generowanie pozycji (wysepki klastrów) ==========
     _positions = PositionGenerator.generateClusteredPositions(
       clusters,
       _nodeIndex,
       const Rect.fromLTWH(0, 0, 1600, 1200),
     );
 
-    // ============= 7. Node-y (model danych dla UI) ===================
     _nodesData =
         _proteinAndConnections!.keys.map((p) => Node(id: p, name: p)).toList();
 
-    // ========================== 8. finisz =============================
     setState(() => isLoading = false);
   }
 
-// Pomocnicza funkcja zwracająca zbiór GO termów pobranych z ostatnich 'selectedLevels' poziomów.
-// Jeśli 'selectedLevels' przekracza liczbę poziomów w 'levels', zwracane są wszystkie poziomy.
   Set<String> _getSelectedTerms(List<List<String>> levels, int selectedLevels) {
     final int startIndex =
         levels.length - selectedLevels < 0 ? 0 : levels.length - selectedLevels;
@@ -268,7 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void _updateHoveredNodes(String hoveredNode) {
     final List<String> relatedNodes = [hoveredNode];
 
-    // Znajdź wszystkie powiązane węzły (dzieci i rodzice)
     for (var connection in _items) {
       if (connection[0] == hoveredNode || connection[1] == hoveredNode) {
         relatedNodes.add(connection[0]);

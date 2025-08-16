@@ -88,7 +88,7 @@ def clusters_by_shared_go(protein_to_go: dict[str, list[str]],
     proteins = list(protein_to_go.keys())
     for i, p1 in enumerate(proteins):
         terms1 = set(protein_to_go[p1])
-        for p2 in proteins[i + 1:]:
+        for p2 in proteins[i + 1:]: 
             common = terms1.intersection(protein_to_go[p2])
             w = len(common)
             if w >= min_shared:

@@ -18,11 +18,8 @@ class NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = !isSmall
-        ? 135.0
-        : 45.0; // Zwiększenie szerokości dla lepszej przejrzystości
+    final width = !isSmall ? 135.0 : 45.0;
 
-    // Ustawienie koloru w zależności od namespace
     Color getNodeColor() {
       switch (nodeData.namespace) {
         case 'cellular_component':
@@ -38,7 +35,7 @@ class NodeWidget extends StatelessWidget {
               ? Colors.orangeAccent.withValues(alpha: 0.8)
               : Colors.orangeAccent.withValues(alpha: 0.2);
         default:
-          return Colors.grey.withValues(alpha: 0.8); // domyślny kolor
+          return Colors.grey.withValues(alpha: 0.8);
       }
     }
 
@@ -48,8 +45,7 @@ class NodeWidget extends StatelessWidget {
         width: width,
         padding: EdgeInsets.all(isSmall ? 1 : 4),
         decoration: BoxDecoration(
-          color: getNodeColor()
-              .withValues(alpha: 0.5), // Kolor podczas przeciągania
+          color: getNodeColor().withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
             BoxShadow(
@@ -84,7 +80,7 @@ class NodeWidget extends StatelessWidget {
         width: width,
         padding: EdgeInsets.all(isSmall ? 1 : 4),
         decoration: BoxDecoration(
-          color: getNodeColor(), // Kolor zależny od namespace
+          color: getNodeColor(),
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
             BoxShadow(

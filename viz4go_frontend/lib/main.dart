@@ -15,18 +15,15 @@ class MyApp extends StatelessWidget {
       title: 'viz4go',
       theme: ThemeData(
         colorScheme: const ColorScheme(
-          primary: Color(0xFF795548), // Ciemny brąz, elegancki i neutralny
-          surface: Color(0xFFFAF3E0), // Jasny beżowy, delikatne tło
+          primary: Color(0xFF795548),
+          surface: Color(0xFFFAF3E0),
           brightness: Brightness.light,
-          error: Color(0xFFD32F2F), // Stonowany, ale wyraźny odcień czerwieni
-          onPrimary: Colors.white, // Dobrze widoczny na ciemnym tle
-          onSecondary: Colors
-              .white, // Jasny tekst na ciemniejszych elementach pomocniczych
-          onSurface: Colors
-              .black87, // Lekko przyciemniony czarny dla dobrej czytelności
-          onError:
-              Colors.white, // Biały dla dobrej widoczności na czerwonym tle
-          secondary: Color(0xFF6D4C41), // Ciemniejszy brąz jako kolor akcentowy
+          error: Color(0xFFD32F2F),
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onSurface: Colors.black87,
+          onError: Colors.white,
+          secondary: Color(0xFF6D4C41),
         ),
         useMaterial3: true,
       ),
