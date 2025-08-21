@@ -60,48 +60,68 @@ class ApiService {
 
   Future<Map<String, dynamic>?> sendNodeConnectionsRequest(PlatformFile file1,
       PlatformFile file2, PlatformFile file3, double score) async {
-    var url = Uri.parse('$_baseUrl/api/go/connections_csv');
+    final url = Uri.parse('$_baseUrl/api/go/connections_csv');
+    final request = http.MultipartRequest('POST', url);
 
-    var request = http.MultipartRequest('POST', url);
-
-    // Dodanie wartości score do formularza
     request.fields['score'] = score.toString();
+    // (opcjonalnie) możesz dopisać:
+    // request.fields['direction'] = 'up';
+    // request.fields['max_depth'] = '3';
+    // request.fields['edge_types'] = 'is_a,part_of';
 
-    // Dodanie plików CSV, jeśli istnieją
-    request.files.add(http.MultipartFile.fromBytes(
-      'file1',
-      file1.bytes!,
-      filename: file1.name,
-      contentType: MediaType('text', 'csv'),
-    ));
-    request.files.add(http.MultipartFile.fromBytes(
-      'file2',
-      file2.bytes!,
-      filename: file2.name,
-      contentType: MediaType('text', 'csv'),
-    ));
-    request.files.add(http.MultipartFile.fromBytes(
-      'file3',
-      file3.bytes!,
-      filename: file3.name,
-      contentType: MediaType('text', 'csv'),
-    ));
+    if (file1.bytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file1',
+        file1.bytes!,
+        filename: file1.name,
+        contentType: MediaType('text', 'csv'),
+      ));
+    }
+    if (file2.bytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file2',
+        file2.bytes!,
+        filename: file2.name,
+        contentType: MediaType('text', 'csv'),
+      ));
+    }
+    if (file3.bytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file3',
+        file3.bytes!,
+        filename: file3.name,
+        contentType: MediaType('text', 'csv'),
+      ));
+    }
 
-    // Wysłanie żądania
     try {
-      var streamedResponse = await request.send();
-
-      // Odbieranie odpowiedzi
-      var response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200) {
-        // Parsowanie odpowiedzi do formatu JSON
-        var data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data;
-      } else {
-        print('Error: ${response.statusCode}');
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      if (response.statusCode != 200) {
+        print('Error: ${response.statusCode} → ${response.body}');
         return null;
       }
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // Obsłuż 2 przypadki: nowy (z kluczem "proteins") i ewentualnie stary (płaski)
+      Map<String, dynamic> proteinsMap;
+      if (data.containsKey('proteins')) {
+        final Map<String, dynamic> proteins =
+            data['proteins'] as Map<String, dynamic>;
+        // Spłaszcz: protein -> edges (porzuć missing_terms w payloadzie dla UI)
+        proteinsMap = proteins.map((k, v) {
+          if (v is Map && v.containsKey('edges')) {
+            return MapEntry(k, v['edges']);
+          }
+          return MapEntry(k, v); // fallback
+        });
+      } else {
+        // fallback: zakładamy już płaską mapę protein -> edges
+        proteinsMap = data;
+      }
+
+      return proteinsMap; // <- to dostaje HomeScreen._generateGraphFromCsv
     } catch (e) {
       print('Exception: $e');
       return null;

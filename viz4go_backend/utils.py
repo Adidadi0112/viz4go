@@ -1,6 +1,5 @@
 import networkx as nx
-import pandas as pd
-from collections import defaultdict
+from typing import Iterable, List, Tuple, Union
 from networkx.algorithms.community import louvain_communities
 
 def check_all_shortest_paths(graph, ontology_ids):
@@ -22,58 +21,53 @@ def check_all_shortest_paths(graph, ontology_ids):
              
     return found_paths_with_relations
 
-def get_connections(df, start_nodes):
-    connections = []
+def get_connections(
+    G: nx.DiGraph,
+    start_nodes: Union[str, Iterable[str]],
+    direction: str = "up",        # "up" = do rodziców (ancestors), "down" = do dzieci (descendants)
+    max_depth: int | None = None,  # np. 3, żeby nie rozjechać się na cały DAG
+) -> List[Tuple[str, str, str]]:
+    """
+    Zwraca listę krawędzi (source, target, rel_type) odwiedzonych węzłów,
+    zaczynając od start_nodes. Dla direction="up" idziemy do rodziców (pred),
+    dla "down" do dzieci (succ). rel_type pochodzi z atrybutu krawędzi 'type'
+    (np. 'is_a', 'part_of').
+
+    Uwaga: w naszym grafie krawędź jest skierowana PARENT -> CHILD.
+    Dla 'up' będziemy zwracać krawędzie jako (current, parent, type),
+    dla 'down' jako (current, child, type).
+    """
+    if isinstance(start_nodes, str):
+        stack = [(start_nodes, 0)]
+    else:
+        stack = [(s, 0) for s in start_nodes]
+
     visited = set()
-    stack = start_nodes
+    edges: List[Tuple[str, str, str]] = []
 
-    print(f"Initial stack nodes: {start_nodes}")
-    
     while stack:
-        current_node = stack.pop()
-        print(f"\nPopped node from stack: {current_node}")
-        
-        if current_node in visited:
-            print(f"Node {current_node} already visited, skipping.")
+        node, depth = stack.pop()
+        if node in visited:
             continue
-        visited.add(current_node)
-        
-        row = df.loc[df['id'] == current_node]
-        if row.empty:
-            print(f"No data found for node: {current_node}")
+        visited.add(node)
+
+        if max_depth is not None and depth >= max_depth:
             continue
-        print(f"Row data for {current_node}: {row}")
 
-        is_a_values = row['is_a'].values[0]
-        if isinstance(is_a_values, list) or isinstance(is_a_values, str):
-            print(f"Found 'is_a' relationships for {current_node}: {is_a_values}")
-            if isinstance(is_a_values, str):
-                is_a_values = eval(is_a_values)  # Converts string representation of a list to an actual list
-            for target_node in is_a_values:
-                connections.append((current_node, target_node, 'is_a'))
-                stack.append(target_node)
+        if direction == "up":
+            # rodzice: pred -> node (edge: pred -> node)
+            for pred in G.predecessors(node):
+                rel_type = G[pred][node].get("type", "")
+                edges.append((node, pred, rel_type))   # (current, parent)
+                stack.append((pred, depth + 1))
         else:
-            print(f"No 'is_a' relationships for {current_node}")
+            # dzieci: node -> succ (edge: node -> succ)
+            for succ in G.successors(node):
+                rel_type = G[node][succ].get("type", "")
+                edges.append((node, succ, rel_type))   # (current, child)
+                stack.append((succ, depth + 1))
 
-        relationship_values = row['relationship'].values[0]
-        if isinstance(relationship_values, list) or isinstance(relationship_values, str):
-            print(f"Found 'relationship' values for {current_node}: {relationship_values}")
-            if isinstance(relationship_values, str):
-                relationship_values = eval(relationship_values)  # Converts string representation of a list to an actual list
-            for relationship in relationship_values:
-                parts = relationship.split(' ')
-                if len(parts) == 2:
-                    rel_type, target_node = parts
-                    connections.append((current_node, target_node, rel_type))
-                    stack.append(target_node)
-                    print(f"Added connection: ({current_node}, {target_node}, {rel_type})")
-                else:
-                    print(f"Warning: unexpected relationship format '{relationship}' for node {current_node}")
-        else:
-            print(f"No 'relationship' values for {current_node}")
-    
-    print(f"\nFinal connections: {connections}")
-    return connections
+    return edges
 
 def clusters_by_shared_go(protein_to_go: dict[str, list[str]],
                           min_shared: int = 3,
