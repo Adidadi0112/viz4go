@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_3d_controller/flutter_3d_controller.dart';
 import 'package:viz4go_frontend/models/node.dart';
@@ -73,7 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
           loadGraph(_items);
         });
       } else {
-        print('Brak danych lub index poza zakresem!');
+        SnackBar snackBar = SnackBar(
+          content: Text(
+              'No protein data available for index $_proteinIndex. Please check the data.'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     } else {
       setState(() {
@@ -121,8 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Map<String, int> clusters = {};
     try {
-      clusters = await ApiService()
-          .fetchProteinClusters(proteinToGo, minShared: 3, algo: "louvain");
+      clusters = await ApiService().fetchProteinClusters(proteinToGo,
+          minShared: _selectedLevels, algo: "louvain");
     } catch (e) {
       debugPrint("Cluster fetch failed → fallback random layout: $e");
     }
@@ -134,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final terms2 =
             _getSelectedTerms(_proteinNodesData[j].levels, selectedLevels);
         final common = terms1.intersection(terms2).length;
-        if (common > 0) {
+        if (common > _selectedLevels) {
           proteinEdges[_proteinNodesData[i].id] = [
             _proteinNodesData[j].id,
             common

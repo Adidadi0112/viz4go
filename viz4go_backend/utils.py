@@ -80,7 +80,7 @@ def clusters_by_shared_go(protein_to_go: dict[str, list[str]],
                           algo: str = "connected",
                           resolution=1.0) -> dict[str, int]:
     """
-    Zwraca mapping:  protein_id -> cluster_id.
+    Zwraca mapping: protein_id -> cluster_id.
     *min_shared*  – minimalna liczba wspólnych GO-termów,
     *algo*        – "connected" (składowe spójne) lub "louvain".
     """
