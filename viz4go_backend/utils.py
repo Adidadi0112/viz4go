@@ -170,7 +170,16 @@ def clusters_by_shared_go(protein_to_go: dict[str, list[str]],
     print(f"🏁 KLASTERYZACJA ZAKOŃCZONA")
     print(f"{'='*80}\n")
     
-    return clusters
+    # Zwróć również krawędzie grafu do wizualizacji
+    edges_list = []
+    for u, v, data in G.edges(data=True):
+        edges_list.append({
+            "source": u,
+            "target": v,
+            "weight": data.get("weight", 0)
+        })
+    
+    return clusters, edges_list
 
 def _bma_similarity(G: nx.DiGraph, A: list[str], B: list[str], method: str = "wang", verbose: bool = False) -> float:
     """
@@ -384,6 +393,15 @@ def clusters_by_semantic_similarity(
     print(f"🏁 KLASTERYZACJA ZAKOŃCZONA")
     print(f"{'='*80}\n")
 
-    return clusters
+    # Zwróć również krawędzie grafu do wizualizacji
+    edges_list = []
+    for u, v, data in GG.edges(data=True):
+        edges_list.append({
+            "source": u,
+            "target": v,
+            "weight": data.get("weight", 0.0)
+        })
+
+    return clusters, edges_list
 
 

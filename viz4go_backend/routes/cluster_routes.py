@@ -38,7 +38,7 @@ def cluster_protein():
         knn = data.get("knn")              # może być None
         resolution = float(data.get("resolution", 1.0))
         store = get_store()
-        clusters = clusters_by_semantic_similarity(
+        clusters, edges = clusters_by_semantic_similarity(
             store.graph,
             protein_to_go,
             method=measure,
@@ -47,16 +47,16 @@ def cluster_protein():
             knn=knn,
             resolution=resolution,
         )
-        return jsonify({"clusters": clusters})
+        return jsonify({"clusters": clusters, "edges": edges})
 
     # fallback: shared_go (obecny tryb)
     min_shared = int(data.get("min_shared", 3))
-    clusters = clusters_by_shared_go(
+    clusters, edges = clusters_by_shared_go(
         protein_to_go,
         min_shared=min_shared,
         algo=algo,
         resolution=float(data.get("resolution", 1.0)),
     )
-    return jsonify({"clusters": clusters})
+    return jsonify({"clusters": clusters, "edges": edges})
 
 

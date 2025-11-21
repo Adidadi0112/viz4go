@@ -128,7 +128,7 @@ class ApiService {
     }
   }
 
-  Future<Map<String, int>> fetchProteinClusters(
+  Future<Map<String, dynamic>> fetchProteinClusters(
     Map<String, List<String>> proteinToGo, {
     // nowości:
     String mode = "semantic", // "semantic" | "shared_go"
@@ -163,7 +163,12 @@ class ApiService {
     );
     if (resp.statusCode != 200) throw Exception(resp.body);
     final Map<String, dynamic> json = jsonDecode(resp.body);
-    return (json['clusters'] as Map)
-        .map((k, v) => MapEntry(k as String, v as int));
+
+    // Zwróć clusters i edges
+    return {
+      'clusters': (json['clusters'] as Map)
+          .map((k, v) => MapEntry(k as String, v as int)),
+      'edges': json['edges'] as List<dynamic>? ?? [],
+    };
   }
 }
