@@ -129,18 +129,37 @@ class ApiService {
   }
 
   Future<Map<String, int>> fetchProteinClusters(
-      Map<String, List<String>> proteinToGo,
-      {int minShared = 2,
-      String algo = "connected"}) async {
+    Map<String, List<String>> proteinToGo, {
+    // nowości:
+    String mode = "semantic", // "semantic" | "shared_go"
+    String measure = "wang", // dla semantic
+    double? threshold, // np. 0.6
+    int? knn, // alternatywa dla threshold
+    double resolution = 1.0,
+    // wsteczna kompatybilność:
+    int minShared = 2,
+    String algo = "louvain",
+  }) async {
     final uri = Uri.parse('$_baseUrl/api/cluster/protein');
+    final body = <String, dynamic>{
+      'protein_to_go': proteinToGo,
+      'algo': algo,
+      'mode': mode,
+      'resolution': resolution,
+    };
+
+    if (mode == 'semantic') {
+      body['measure'] = measure;
+      if (threshold != null) body['threshold'] = threshold;
+      if (knn != null) body['knn'] = knn;
+    } else {
+      body['min_shared'] = minShared;
+    }
+
     final resp = await http.post(
       uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'protein_to_go': proteinToGo,
-        'min_shared': minShared,
-        'algo': algo,
-      }),
+      body: jsonEncode(body),
     );
     if (resp.statusCode != 200) throw Exception(resp.body);
     final Map<String, dynamic> json = jsonDecode(resp.body);

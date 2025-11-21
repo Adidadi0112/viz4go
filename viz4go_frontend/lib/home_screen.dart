@@ -123,8 +123,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Map<String, int> clusters = {};
     try {
-      clusters = await ApiService().fetchProteinClusters(proteinToGo,
-          minShared: _selectedLevels, algo: "louvain");
+      clusters = await ApiService().fetchProteinClusters(
+        proteinToGo,
+        mode: "semantic",
+        measure: "wang",
+        threshold: 0.6,
+        algo: "louvain",
+        resolution: 1.0,
+      );
     } catch (e) {
       debugPrint("Cluster fetch failed → fallback random layout: $e");
     }
