@@ -122,26 +122,35 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     Map<String, int> clusters = {};
+    List<dynamic> clusterEdges = [];
+
     try {
-      clusters = await ApiService().fetchProteinClusters(proteinToGo,
-          minShared: _selectedLevels, algo: "louvain");
+      final result = await ApiService().fetchProteinClusters(
+        proteinToGo,
+        mode: "semantic",
+        measure: "wang",
+        threshold: 0.6,
+        algo: "louvain",
+        resolution: 1.0,
+      );
+      clusters = result['clusters'] as Map<String, int>;
+      clusterEdges = result['edges'] as List<dynamic>;
+
+      debugPrint("✅ Otrzymano ${clusterEdges.length} krawędzi z klasteryzacji");
     } catch (e) {
       debugPrint("Cluster fetch failed → fallback random layout: $e");
     }
 
-    for (int i = 0; i < _proteinNodesData.length; i++) {
-      for (int j = i + 1; j < _proteinNodesData.length; j++) {
-        final terms1 =
-            _getSelectedTerms(_proteinNodesData[i].levels, selectedLevels);
-        final terms2 =
-            _getSelectedTerms(_proteinNodesData[j].levels, selectedLevels);
-        final common = terms1.intersection(terms2).length;
-        if (common > _selectedLevels) {
-          proteinEdges[_proteinNodesData[i].id] = [
-            _proteinNodesData[j].id,
-            common
-          ];
-        }
+    // Użyj krawędzi z klasteryzacji zamiast obliczać własne
+    for (var edge in clusterEdges) {
+      final source = edge['source'] as String;
+      final target = edge['target'] as String;
+      final weight = edge['weight'] as num;
+
+      // Dodaj krawędź (możesz filtrować po wadze, jeśli chcesz)
+      if (weight >= 0.4) {
+        // Opcjonalny próg do wizualizacji
+        proteinEdges[source] = [target, weight.toDouble()];
       }
     }
 
