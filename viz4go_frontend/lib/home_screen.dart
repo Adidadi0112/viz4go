@@ -128,8 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final result = await ApiService().fetchProteinClusters(
         proteinToGo,
         mode: "semantic",
-        measure: "wang",
-        threshold: 0.6,
+        measure: "resnik", // Changed from "wang" to "resnik"
+        threshold: 4.0, // Adjusted threshold for Resnik (IC scale: 0-15)
         algo: "louvain",
         resolution: 1.0,
       );
