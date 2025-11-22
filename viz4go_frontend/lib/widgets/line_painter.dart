@@ -45,8 +45,8 @@ class LinePainter extends CustomPainter {
   }
 
   void _drawArrowHead(Canvas canvas, Paint paint, Offset start, Offset end) {
-    const arrowAngle = 30 * 3.14159265 / 180; 
-    const arrowLength = 10.0; 
+    const arrowAngle = 30 * 3.14159265 / 180;
+    const arrowLength = 10.0;
 
     final direction = (start - end).direction;
 
@@ -56,14 +56,14 @@ class LinePainter extends CustomPainter {
         end + Offset.fromDirection(direction - arrowAngle, arrowLength);
 
     final path = Path()
-      ..moveTo(end.dx, end.dy) 
-      ..lineTo(arrowPoint1.dx, arrowPoint1.dy) 
+      ..moveTo(end.dx, end.dy)
+      ..lineTo(arrowPoint1.dx, arrowPoint1.dy)
       ..lineTo(arrowPoint2.dx, arrowPoint2.dy)
-      ..close(); 
+      ..close();
 
     final arrowPaint = Paint()
-      ..color = paint.color 
-      ..style = PaintingStyle.fill; 
+      ..color = paint.color
+      ..style = PaintingStyle.fill;
 
     canvas.drawPath(path, arrowPaint);
   }
