@@ -74,7 +74,7 @@ class _ProteinNodeWidgetState extends State<ProteinNodeWidget> {
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color:
-                const Color.fromARGB(255, 41, 115, 16).withValues(alpha: 0.5),
+                const Color.fromARGB(255, 41, 115, 16).withOpacity(0.5),
             shape: BoxShape.circle,
             boxShadow: const [
               BoxShadow(

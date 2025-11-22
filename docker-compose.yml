@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: viz4go_backend
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount resources and data directories to persist data
+      - ./viz4go_backend/_resources:/app/viz4go_backend/_resources
+      - ./viz4go_backend/data:/app/viz4go_backend/data
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/go/term/GO:0008150')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: viz4go_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    environment:
+      # For Docker internal communication, use the service name
+      # For external access from browser, users need to access via localhost:5000
+      - BACKEND_URL=http://localhost:5000
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    name: viz4go_network

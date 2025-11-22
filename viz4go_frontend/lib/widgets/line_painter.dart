@@ -79,7 +79,7 @@ class LinePainter extends CustomPainter {
       case "regulates":
         return const Color(0xFFCDDC39);
       default:
-        return Colors.black.withValues(alpha: 0.3);
+        return Colors.black.withOpacity(0.3);
     }
   }
 

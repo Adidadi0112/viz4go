@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: viz4go_backend_dev
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount entire backend for hot-reload during development
+      - ./viz4go_backend:/app/viz4go_backend
+      - ./requirements.txt:/app/requirements.txt
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=1
+    command: python -m flask run --host=0.0.0.0 --port=5000 --reload
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: viz4go_frontend_dev
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: viz4go_dev_network

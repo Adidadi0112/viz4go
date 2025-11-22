@@ -5,7 +5,12 @@ import 'package:viz4go_frontend/models/node.dart';
 import 'package:http_parser/http_parser.dart';
 
 class ApiService {
-  final String _baseUrl = 'http://127.0.0.1:5000';
+  // Use environment variable or default to localhost for development
+  // For production (Docker), this should be set to the backend service URL
+  final String _baseUrl = const String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://127.0.0.1:5000',
+  );
 
   Future<List<Node>> fetchGoTermsByNodeIndex(Map<String, int> nodeIndex) async {
     try {

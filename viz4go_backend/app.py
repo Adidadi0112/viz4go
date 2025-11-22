@@ -14,4 +14,5 @@ app.register_blueprint(go_bp, url_prefix='/api/go')
 app.register_blueprint(cluster_bp, url_prefix="/api/cluster")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # When run directly (for local dev), bind to 0.0.0.0 so Docker can reach it.
+    app.run(host='0.0.0.0', port=5000, debug=True)
