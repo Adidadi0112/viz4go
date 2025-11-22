@@ -13,8 +13,9 @@ RUN flutter pub get
 # Copy the rest of the frontend code
 COPY viz4go_frontend/ .
 
-# Build the web app
-RUN flutter build web --release --web-renderer html
+# Build the web app with CanvasKit renderer for better performance
+# CanvasKit is much faster for graphics, animations, and custom painting
+RUN flutter build web --release --web-renderer canvaskit
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
